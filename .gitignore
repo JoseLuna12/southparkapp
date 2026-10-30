@@ -1,0 +1,17 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+*.iml
+.DS_Store
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Local secrets and network captures
+.env
+.env.*
+*.jks
+*.keystore
+*.har

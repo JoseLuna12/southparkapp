@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="catalog_reload" type="id" />
+    <item name="catalog_retry" type="id" />
+    <item name="catalog_status" type="id" />
+    <item name="season_list" type="id" />
+    <item name="episode_grid" type="id" />
+    <item name="episode_card" type="id" />
+    <item name="episode_artwork" type="id" />
+    <item name="continue_watching" type="id" />
+    <item name="next_episode" type="id" />
+    <item name="player_view" type="id" />
+    <item name="player_title" type="id" />
+    <item name="player_back" type="id" />
+    <item name="player_next" type="id" />
+</resources>

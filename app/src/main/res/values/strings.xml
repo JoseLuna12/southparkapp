@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">South Park TV · Unofficial</string>
+    <string name="brand_name">South Park</string>
+    <string name="brand_tv">TV</string>
+    <string name="brand_context">Unofficial · South Park Studios catalog</string>
+    <string name="seasons_heading">Seasons</string>
+    <string name="reload">Reload</string>
+    <string name="retry">Retry</string>
+    <string name="section_episodes">Episodes</string>
+    <string name="status_empty_catalog">No seasons are currently listed. Try Reload.</string>
+    <string name="episode_metadata">%1$s · %2$s</string>
+    <string name="episode_locked_metadata">%1$s · Official site</string>
+    <string name="status_loading_seasons">Loading seasons from the official site…</string>
+    <string name="status_loading_episodes">Loading all episodes…</string>
+    <string name="status_empty_season">No full episodes are listed for this season on the official site.</string>
+    <string name="status_counts">%1$s · %2$s</string>
+    <plurals name="episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
+    <plurals name="season_count">
+        <item quantity="one">%1$d season listed</item>
+        <item quantity="other">%1$d seasons listed</item>
+    </plurals>
+    <string name="status_seasons_error">Could not load seasons. Use Retry or Reload.</string>
+    <string name="status_season_error">Could not load this season. Use Retry or Reload.</string>
+    <string name="status_browser_unavailable">No browser is available for this official page.</string>
+    <string name="footer_hint">OK for details · Back to seasons · Availability varies by region</string>
+    <string name="season_label">Season %1$d</string>
+    <string name="history_last_watched">Last watched: %1$s · %2$s</string>
+    <string name="continue_action">Continue watching · %3$s\n%1$s · %2$s</string>
+    <string name="watch_again_action">Watch again\n%1$s · %2$s</string>
+    <string name="next_action">Up next\n%1$s · %2$s</string>
+    <string name="next_finding">Finding next episode…</string>
+    <string name="next_none">No next episode listed</string>
+    <string name="next_unavailable">Next episode unavailable</string>
+    <string name="episode_card_accessibility">%1$s, %2$s, %3$s</string>
+    <string name="episode_locked_accessibility">%1$s, %2$s, locked. Opens the official site.</string>
+    <string name="episode_details_title">%1$s · %2$s</string>
+    <string name="episode_details_message">%1$s\n\n%2$s · Official South Park Studios stream%3$s</string>
+    <string name="locked_details_note">\nThis episode is not listed as freely playable.</string>
+    <string name="dialog_watch_episode">Watch episode</string>
+    <string name="dialog_official_site">View on official site</string>
+    <string name="dialog_back">Back</string>
+    <string name="player_back">Back to episodes</string>
+    <string name="player_next">Next episode</string>
+    <string name="player_next_unavailable">Next unavailable</string>
+    <string name="player_no_next">No next episode</string>
+    <string name="player_retry_next">Retry next</string>
+    <string name="player_loading_next">Loading next…</string>
+    <string name="player_next_description">Next episode: %1$s, %2$s</string>
+    <string name="player_metadata">%1$s\n%2$s</string>
+    <string name="player_loading_episode">Loading %1$s</string>
+    <string name="player_playing_episode">Playing %1$s</string>
+    <string name="player_unavailable">Playback unavailable</string>
+    <string name="player_error_title">Can’t play this episode</string>
+    <string name="player_initialization_error">Native player could not initialize. %1$s</string>
+    <string name="player_error_code">Playback failed: %1$s. The provider may restrict this episode or require unsupported DRM. No restrictions will be bypassed.</string>
+    <string name="player_error_fallback">The official service did not respond. Check your connection.</string>
+    <string name="player_error_retry">Retry</string>
+    <string name="player_error_back">Back to episodes</string>
+    <string name="player_error_official">Official site</string>
+    <string name="player_no_browser">No browser is installed on this TV.</string>
+    <string name="player_retry_toast">Couldn’t load the next episode. Select Retry next to try again.</string>
+</resources>

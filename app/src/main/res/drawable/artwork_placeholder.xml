@@ -1,0 +1,5 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="160dp" android:height="90dp" android:viewportWidth="160" android:viewportHeight="90">
+    <path android:fillColor="@color/tv_artwork_background" android:pathData="M0,0h160v90h-160z" />
+    <path android:fillColor="@color/tv_artwork_mark" android:pathData="M38,59l21,-22 19,18 13,-13 29,29h-82z" />
+    <path android:fillColor="@color/tv_accent" android:pathData="M68,56l14,-14 21,21h-30z" />
+</vector>
