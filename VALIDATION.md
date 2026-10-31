@@ -94,3 +94,11 @@ The player explicitly applies Fit and scale-to-fit. Version 0.3's optional Fit/Z
 - TalkBack traversal/announcements, RTL or translated long strings, font scales above 1.2, other display geometries and physical-TV viewing distance/overscan.
 - Redesigned Retry behavior under injected network failures. Controls/provider paths are retained, but source inspection is not runtime verification.
 - Overscan safety of native Media3 popup menus: runtime menus work and dismiss correctly, but can extend to the screen edge beyond the app's toolbar/timebar safe insets. Physical-TV validation remains necessary.
+
+## Captions and watched status change
+
+The player retains text-track preferences across player replacement for Next, content-end autoplay, retry and stop/start within the same activity instance. Native track overrides become language/role preferences rather than stale track groups. Missing languages remain subject to Media3 selection and the provider tracks.
+
+Watched flags use the existing completion threshold, survive partial rewatch and have a manual details-dialog toggle. Unit tests cover durable flags across new history entries, manual changes, completion migration and unchanged resume positions.
+
+Live caption transitions and the new details action remain unverified: emulator-5554 was unavailable for this change. No physical TV was used.

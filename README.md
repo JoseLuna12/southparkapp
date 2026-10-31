@@ -39,6 +39,8 @@ The launcher name is **South Park TV · Unofficial**. Alternatively, transfer th
 - The visible **Reload** action is reachable using arrows alone; Menu is an optional reload shortcut. Failed catalog requests expose **Retry**. The app remembers the last season, restores the launching card after playback and resumes each episode near its saved content position.
 - **Last watched** shows the most recently played episode after returning to the catalog or reopening the app. **Continue watching** resumes it. **Up next** suggests the following episode in the official catalog, including the next season when listed. Playback autoplays the next available listed episode at content end. Completed episodes offer **Watch again**.
 
+Cards show **✓ Watched** for completed episodes. Use **Mark as watched** or **Mark as unwatched** in episode details to change this locally. Completion uses the existing final-ten-seconds rule; replaying an episode does not erase its watched mark. Captions on/off and the selected language/role persist across Next and autoplay within the current player session, when offered by the next stream.
+
 The app lists what the official site publishes in your region. During validation it exposed 29 seasons and 331 full-episode cards across Seasons 1–28. Season 29 offered clips only, so the app displays an empty-state message for full episodes instead of inventing entries or claiming all produced episodes are available. Counts can change.
 
 ## Playback and availability
@@ -53,7 +55,7 @@ The ad-aware stream includes the provider's ad flow. No ad stripping, downloads,
 
 Catalog requests go to South Park Studios and thumbnail requests to Paramount. Playing an episode also contacts Paramount's playback service, Google IMA DAI and provider-selected streaming/ad infrastructure. They receive network information such as IP address and user agent. The app requests non-personalized ads, restricted data processing and limited ad tracking; these flags are not a guarantee of no provider tracking and are not fabricated consent. No consent strings are invented.
 
-There is no app account or custom analytics service. Advertising-ID and Android AdServices permissions are removed from the merged manifest. Playback uses new random session identifiers rather than a stored advertising identifier. Local preferences hold the last selected season, per-episode resume positions, and one last-watched entry with episode metadata, position, duration and completion state. Earlier WebView builds may leave website storage behind until app data is cleared. Artwork is cached only in memory. Clear Android app storage to remove local preferences.
+There is no app account or custom analytics service. Advertising-ID and Android AdServices permissions are removed from the merged manifest. Playback uses new random session identifiers rather than a stored advertising identifier. Local preferences hold the last selected season, per-episode resume positions, per-episode watched flags, and one last-watched entry with episode metadata, position, duration and completion state. Earlier WebView builds may leave website storage behind until app data is cleared. Artwork is cached only in memory. Clear Android app storage to remove local preferences.
 
 The project is not affiliated with South Park, Comedy Central or Paramount. Generic original launcher artwork is used.
 
@@ -67,7 +69,7 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ```
 
-Twenty-one local tests cover public metadata parsing, selected seasons with null URLs, episode cards, pagination links, clip-only seasons, authentication flags, official-page URL validation, saved history serialization, completion boundaries and next-episode selection.
+Local tests cover public metadata parsing, selected seasons with null URLs, episode cards, pagination links, clip-only seasons, authentication flags, official-page URL validation, saved history serialization, completion boundaries and next-episode selection.
 
 With `emulator-5554` running and `ffmpeg` installed:
 

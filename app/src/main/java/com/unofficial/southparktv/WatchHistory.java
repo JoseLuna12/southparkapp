@@ -19,9 +19,26 @@ final class WatchHistory {
 
     static void save(SharedPreferences preferences, Entry entry) {
         try {
-            preferences.edit().putString("lastEpisode", encode(entry))
-                    .putLong(entry.episode().id(), entry.positionMs()).apply();
+            SharedPreferences.Editor editor = preferences.edit().putString("lastEpisode", encode(entry))
+                    .putLong(entry.episode().id(), entry.positionMs());
+            Entry previous = last(preferences);
+            if (previous != null && previous.completed() && !preferences.contains("watched:" + previous.episode().id())) {
+                editor.putBoolean("watched:" + previous.episode().id(), true);
+            }
+            if (entry.completed()) editor.putBoolean("watched:" + entry.episode().id(), true);
+            editor.apply();
         } catch (JSONException e) { throw new IllegalArgumentException("Invalid watch history", e); }
+    }
+
+    static boolean isWatched(SharedPreferences preferences, String id) {
+        String key = "watched:" + id;
+        if (preferences.contains(key)) return preferences.getBoolean(key, false);
+        Entry last = last(preferences);
+        return last != null && last.completed() && last.episode().id().equals(id);
+    }
+
+    static void setWatched(SharedPreferences preferences, String id, boolean watched) {
+        preferences.edit().putBoolean("watched:" + id, watched).apply();
     }
 
     static Entry snapshot(Catalog.Episode episode, int season, String seasonPath,

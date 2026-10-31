@@ -48,7 +48,7 @@ final class EpisodeCard extends LinearLayout {
         addView(title, new LayoutParams(-1, -2));
     }
 
-    void bind(Catalog.Episode episode, int columnWidth, String key) {
+    void bind(Catalog.Episode episode, int columnWidth, String key, boolean watched) {
         artworkKey = key;
         artwork.setImageResource(R.drawable.artwork_placeholder);
         LayoutParams imageParams = (LayoutParams) artwork.getLayoutParams();
@@ -56,9 +56,12 @@ final class EpisodeCard extends LinearLayout {
         artwork.setLayoutParams(imageParams);
         metadata.setText(getResources().getString(episode.locked() ? R.string.episode_locked_metadata
                 : R.string.episode_metadata, episode.label(), episode.duration()));
+        if (watched) metadata.setText(getResources().getString(R.string.episode_watched_metadata, metadata.getText()));
         title.setText(episode.title());
         setContentDescription(getResources().getString(episode.locked() ? R.string.episode_locked_accessibility
                 : R.string.episode_card_accessibility, episode.label(), episode.title(), episode.duration()));
+        if (watched) setContentDescription(getResources().getString(
+                R.string.episode_watched_accessibility, getContentDescription()));
     }
 
     /** A recycled card must never receive another episode's delayed result. UI thread only. */
