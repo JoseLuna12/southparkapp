@@ -63,4 +63,8 @@
     <string name="player_error_official">Official site</string>
     <string name="player_no_browser">No browser is installed on this TV.</string>
     <string name="player_retry_toast">Couldn’t load the next episode. Select Retry next to try again.</string>
+    <string name="mark_watched">Mark as watched</string>
+    <string name="mark_unwatched">Mark as unwatched</string>
+    <string name="episode_watched_metadata">✓ Watched · %1$s</string>
+    <string name="episode_watched_accessibility">%1$s, watched</string>
 </resources>

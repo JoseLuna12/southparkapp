@@ -49,6 +49,7 @@ public final class PlayerActivity extends Activity {
     private PlayerView view;
     private android.widget.ProgressBar resolving;
     private ExoPlayer player;
+    private androidx.media3.common.TrackSelectionParameters captionPreferences;
     private ImaServerSideAdInsertionMediaSource.AdsLoader ads;
     private Future<?> request;
     private int generation;
@@ -273,6 +274,13 @@ public final class PlayerActivity extends Activity {
         sources.setServerSideAdInsertionMediaSourceFactory(new ImaServerSideAdInsertionMediaSource.Factory(ads, sources));
         player = new ExoPlayer.Builder(this).setMediaSourceFactory(sources)
                 .setSeekBackIncrementMs(10000).setSeekForwardIncrementMs(10000).build();
+        if (captionPreferences != null) {
+            player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, captionPreferences.disabledTrackTypes.contains(C.TRACK_TYPE_TEXT))
+                    .setPreferredTextLanguages(captionPreferences.preferredTextLanguages.toArray(new String[0]))
+                    .setPreferredTextRoleFlags(captionPreferences.preferredTextRoleFlags)
+                    .setSelectUndeterminedTextLanguage(captionPreferences.selectUndeterminedTextLanguage).build());
+        }
         player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true);
         player.setHandleAudioBecomingNoisy(true);
@@ -425,10 +433,26 @@ public final class PlayerActivity extends Activity {
         else getSharedPreferences("playback", MODE_PRIVATE).edit().putLong(episode.id(), resumePosition).apply();
     }
 
+    private void rememberCaptions() {
+        var parameters = player.getTrackSelectionParameters();
+        var remembered = parameters.buildUpon().clearOverridesOfType(C.TRACK_TYPE_TEXT);
+        // Native menus select episode-specific groups. Carry their language/role, never the old group.
+        for (var override : parameters.overrides.values()) {
+            if (override.getType() != C.TRACK_TYPE_TEXT || override.trackIndices.isEmpty()) continue;
+            var format = override.mediaTrackGroup.getFormat(override.trackIndices.get(0));
+            remembered.setPreferredTextLanguage(format.language)
+                    .setPreferredTextRoleFlags(format.roleFlags)
+                    .setSelectUndeterminedTextLanguage(true);
+            break;
+        }
+        captionPreferences = remembered.build();
+    }
+
     private void release() {
         handler.removeCallbacks(progress);
         if (player != null) {
             savePosition();
+            rememberCaptions();
             view.setPlayer(null);
             player.release();
             player = null;

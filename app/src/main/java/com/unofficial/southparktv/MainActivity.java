@@ -331,6 +331,7 @@ public final class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         refreshHistory();
+        if (grid.getAdapter() instanceof BaseAdapter adapter) adapter.notifyDataSetChanged();
         if (restoreGridFocus) {
             restoreGridFocus = false;
             grid.post(() -> {
@@ -445,7 +446,13 @@ public final class MainActivity extends Activity {
                 .setMessage(getString(R.string.episode_details_message, episode.description(), episode.duration(), note))
                 .setPositiveButton(episode.locked() ? R.string.dialog_official_site : R.string.dialog_watch_episode,
                         (dialog, which) -> startEpisode(episode, season))
-                .setNegativeButton(R.string.dialog_back, null);
+                .setNegativeButton(R.string.dialog_back, null)
+                .setNeutralButton(WatchHistory.isWatched(getSharedPreferences("playback", MODE_PRIVATE), episode.id())
+                        ? R.string.mark_unwatched : R.string.mark_watched, (dialog, which) -> {
+                    var preferences = getSharedPreferences("playback", MODE_PRIVATE);
+                    WatchHistory.setWatched(preferences, episode.id(), !WatchHistory.isWatched(preferences, episode.id()));
+                    if (grid.getAdapter() instanceof BaseAdapter adapter) adapter.notifyDataSetChanged();
+                });
         TvUi.showDialog(builder);
 
     }
@@ -488,7 +495,8 @@ public final class MainActivity extends Activity {
             Catalog.Episode episode = episodes.get(position);
             EpisodeCard card = recycled instanceof EpisodeCard ? (EpisodeCard) recycled : new EpisodeCard(MainActivity.this);
             String address = artworkAddress(episode.image());
-            card.bind(episode, grid.getColumnWidth() > 0 ? grid.getColumnWidth() : dp(220), address);
+            card.bind(episode, grid.getColumnWidth() > 0 ? grid.getColumnWidth() : dp(220), address,
+                    WatchHistory.isWatched(getSharedPreferences("playback", MODE_PRIVATE), episode.id()));
             loadArtwork(card, address);
             return card;
         }

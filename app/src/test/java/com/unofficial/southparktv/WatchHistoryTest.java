@@ -14,6 +14,56 @@ public class WatchHistoryTest {
             "Canada goes on strike.", "22:00", "", "/episodes/u1yv8w/canada", false);
     private static final String SEASON = "/seasons/south-park/gfstdd/season-12";
 
+    private static android.content.SharedPreferences preferences(java.util.Map<String, Object> values) {
+        var pending = new java.util.HashMap<String, Object>();
+        var editor = (android.content.SharedPreferences.Editor) java.lang.reflect.Proxy.newProxyInstance(
+                WatchHistoryTest.class.getClassLoader(), new Class<?>[]{android.content.SharedPreferences.Editor.class},
+                (proxy, method, args) -> {
+                    if (method.getName().startsWith("put")) { pending.put((String) args[0], args[1]); return proxy; }
+                    if (method.getName().equals("apply")) { values.putAll(pending); pending.clear(); return null; }
+                    throw new UnsupportedOperationException(method.getName());
+                });
+        return (android.content.SharedPreferences) java.lang.reflect.Proxy.newProxyInstance(
+                WatchHistoryTest.class.getClassLoader(), new Class<?>[]{android.content.SharedPreferences.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "edit" -> editor;
+                    case "contains" -> values.containsKey(args[0]);
+                    case "getString", "getBoolean" -> values.getOrDefault(args[0], args[1]);
+                    default -> throw new UnsupportedOperationException(method.getName());
+                });
+    }
+
+    @Test public void watchedEpisodesSurviveNewHistoryAndPartialRewatch() {
+        var values = new java.util.HashMap<String, Object>();
+        var preferences = preferences(values);
+        assertFalse(WatchHistory.isWatched(preferences, "major"));
+        WatchHistory.save(preferences, WatchHistory.snapshot(MAJOR, 12, SEASON, 1310000, 1320000, false));
+        WatchHistory.save(preferences, WatchHistory.snapshot(CANADA, 12, SEASON, 45000, 1320000, false));
+        WatchHistory.save(preferences, WatchHistory.snapshot(MAJOR, 12, SEASON, 45000, 1320000, false));
+        assertTrue(WatchHistory.isWatched(preferences(values), "major"));
+        assertFalse(WatchHistory.isWatched(preferences, "canada"));
+        WatchHistory.setWatched(preferences, "major", false);
+        assertFalse(WatchHistory.isWatched(preferences(values), "major"));
+        WatchHistory.setWatched(preferences, "canada", true);
+        assertTrue(WatchHistory.isWatched(preferences(values), "canada"));
+        assertEquals(45000L, values.get("major"));
+    }
+
+    @Test public void migratesLegacyCompletionWithoutOverridingManualUnwatched() throws Exception {
+        var values = new java.util.HashMap<String, Object>();
+        values.put("lastEpisode", WatchHistory.encode(new WatchHistory.Entry(MAJOR, 12, SEASON, 0, 1320000, true)));
+        var preferences = preferences(values);
+        assertTrue(WatchHistory.isWatched(preferences, "major"));
+        WatchHistory.setWatched(preferences, "major", false);
+        assertFalse(WatchHistory.isWatched(preferences, "major"));
+        WatchHistory.save(preferences, WatchHistory.snapshot(CANADA, 12, SEASON, 45000, 1320000, false));
+        assertFalse(WatchHistory.isWatched(preferences, "major"));
+        values.remove("watched:major");
+        values.put("lastEpisode", WatchHistory.encode(new WatchHistory.Entry(MAJOR, 12, SEASON, 0, 1320000, true)));
+        WatchHistory.save(preferences, WatchHistory.snapshot(CANADA, 12, SEASON, 45000, 1320000, false));
+        assertTrue(WatchHistory.isWatched(preferences, "major"));
+    }
+
     @Test public void encodesActualEpisodeAndResumeMetadata() throws Exception {
         JSONObject json = new JSONObject(WatchHistory.encode(new WatchHistory.Entry(MAJOR, 12, SEASON, 65000, 1320000, false)));
         assertEquals("Major Boobage", json.getString("title"));

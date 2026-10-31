@@ -33,7 +33,7 @@ Source of truth: `app/src/main/res/values/{colors,dimens,strings,styles}.xml` an
 - **Loading:** preserve the shell, available actions and focus; show loading text/placeholder. Never move focus when artwork arrives.
 - **Empty:** explain that no full episodes are listed. Clips do not become episodes. Rail/Reload remain usable.
 - **Error:** readable error text plus a visible D-pad-reachable Retry. Do not rely on the error color alone. Retry the failed operation, not a different source or bypass.
-- **Completion/history:** Continue includes position; a completed episode offers Watch again. Up next can be loading, available, absent or retryable. Do not enable actions before a valid target exists.
+- **Completion/history:** Cards prepend a text checkmark and Watched label to metadata and include watched state in their accessible description. Details expose a manual watched/unwatched action using the shared dialog. Watched flags persist locally and use the existing completion threshold. Continue includes position; a completed episode offers Watch again. Up next can be loading, available, absent or retryable. Do not enable actions before a valid target exists.
 
 ## Shared building blocks
 
@@ -44,7 +44,7 @@ Source of truth: `app/src/main/res/values/{colors,dimens,strings,styles}.xml` an
 | `bg_*` drawables / `color/tv_button_text.xml` | Normal, pressed, focused, activated and disabled visuals. Do not duplicate selectors in activities. |
 | `ids.xml` | Stable app control IDs for focus links and tests. Repeated `episode_card` IDs are intentional adapter-item IDs; identify an episode by its content description/ID too. |
 | `MainActivity.java` | Screen assembly, catalog requests, adapter recycling, history actions and focus restoration. Keep existing request-generation/cancellation guards. |
-| `PlayerActivity.java` | Full-bleed PlayerView, safe-inset app toolbar and app-owned error dialog. `styleTransport()` insets the existing bottom bar/timebar and colors `DefaultTimeBar` through setters. Native captions get safe margins, with their viewport ending above the timebar while controls are visible. Text captions default to 22sp regular sans-serif, soft-white `tv_text_primary`, a black drop shadow and transparent background/window. `styleSubtitles()` suppresses embedded text styling for this default; caption wording, timing, language selection and placement remain provider-owned. When Android accessibility captions are enabled, native system style/font-scale preferences take priority instead. Reapply on activity start so changes made in Settings take effect. Bitmap captions cannot be restyled this way. Video and IMA stay full bleed. Media3 IDs/layout are version-sensitive: recheck these bounds and the full smoke test when upgrading Media3. |
+| `PlayerActivity.java` | Full-bleed PlayerView, safe-inset app toolbar and app-owned error dialog. `styleTransport()` insets the existing bottom bar/timebar and colors `DefaultTimeBar` through setters. Caption on/off and language/role preferences survive player replacement within the activity session; episode-specific text overrides are translated to language/role before release. Native captions get safe margins, with their viewport ending above the timebar while controls are visible. Text captions default to 22sp regular sans-serif, soft-white `tv_text_primary`, a black drop shadow and transparent background/window. `styleSubtitles()` suppresses embedded text styling for this default; caption wording, timing, language selection and placement remain provider-owned. When Android accessibility captions are enabled, native system style/font-scale preferences take priority instead. Reapply on activity start so changes made in Settings take effect. Bitmap captions cannot be restyled this way. Video and IMA stay full bleed. Media3 IDs/layout are version-sensitive: recheck these bounds and the full smoke test when upgrading Media3. |
 
 Example for a new app-owned action:
 
@@ -77,7 +77,7 @@ English UI only at present. 1.2 font scale and animator scale zero were tested o
 
 ## Playback/security boundaries
 
-`Catalog`, `SiteClient` and `WatchHistory` are unchanged from the pre-redesign baseline. Keep their URL gates, pagination, official ordering, completion boundaries and stored schema. Keep PlayerActivity's fresh MICA/IMA sessions, ad-aware seeks/Next, async generation/active checks, old-identity save/release order and Fit mode. Never theme IMA-owned controls or add provider/DRM/auth/region workarounds.
+`Catalog`, `SiteClient` and `WatchHistory` are unchanged from the pre-redesign baseline. Keep their URL gates, pagination, official ordering, completion boundaries and existing history fields. Watched flags are additive per-episode preferences. Keep PlayerActivity's fresh MICA/IMA sessions, ad-aware seeks/Next, async generation/active checks, old-identity save/release order and Fit mode. Never theme IMA-owned controls or add provider/DRM/auth/region workarounds.
 
 ## Change checklist
 
