@@ -1,6 +1,6 @@
 # Multirregión con fuentes oficiales: plan Sol Medium
 
-Historical proposal. Implemented behavior and current limits: [implementation guide](../multiregion.md).
+Withdrawn experimental feature. Historical proposal only. Current status: [implementation guide](../multiregion.md).
 
 Investigación de GPT-Sol, `gpt-6.1-sol`, reasoning medium. Revisado el 31 de octubre de 2026. Propuesta para una implementación posterior, sin cambios de aplicación.
 
