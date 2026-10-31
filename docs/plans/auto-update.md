@@ -1,5 +1,7 @@
 # Plan de autoactualización por APK en Android TV
 
+Historical proposal. Implemented behavior and current limits: [implementation guide](../auto-update.md).
+
 Estado: propuesta, sin implementación. Fecha: 31 de octubre de 2026.
 
 ## Objetivo y alcance
