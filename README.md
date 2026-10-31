@@ -27,7 +27,7 @@ The launcher name is **South Park TV · Unofficial**. Alternatively, transfer th
 
 ## Regional sources
 
-The catalog header offers **US · English**, the current official source. LATAM is shown as unverified and cannot be selected. Source choice does not grant regional rights or guarantee audio tracks. [MVP architecture and activation requirements](docs/multiregion.md).
+The catalog header shows **South Park en inglés**. Open **Idioma** with the D-pad to see English selected and Spanish unavailable. Spanish stays disabled until an official Spanish-language catalog and playback are verified. [MVP architecture and activation requirements](docs/multiregion.md).
 
 ## Use
 

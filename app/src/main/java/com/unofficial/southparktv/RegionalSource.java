@@ -37,7 +37,7 @@ final class RegionalSource {
         URI uri = URI.create(origin).resolve(address).normalize();
         if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null
                 || uri.getRawUserInfo() != null || (uri.getPort() != -1 && uri.getPort() != 443)
-                || uri.getRawPath().contains("%") || uri.getRawPath().contains("\\"))
+                || (uri.getRawPath().toLowerCase(java.util.Locale.ROOT).matches(".*%(2e|2f|5c).*")) || uri.getRawPath().contains("\\"))
             throw new IllegalArgumentException("Unsupported official address");
         return uri;
     }

@@ -67,11 +67,9 @@
     <string name="mark_unwatched">Mark as unwatched</string>
     <string name="episode_watched_metadata">✓ Watched · %1$s</string>
     <string name="episode_watched_accessibility">%1$s, watched</string>
-    <string name="source_current">US · English</string>
-    <string name="source_title">Official source</string>
-    <string name="source_options">US · English: current official source.
-
-Latin America · Latin American Spanish: not verified, unavailable for selection.
-
-Content language depends on the tracks supplied by the provider. Choosing a source does not change your location or regional rights.</string>
+    <string name="language_current">South Park en inglés</string>
+    <string name="language_title">Idioma</string>
+    <string name="language_english_selected">Inglés · Seleccionado</string>
+    <string name="language_spanish_unavailable">Español · No disponible</string>
+    <string name="language_availability">Por ahora puedes ver South Park en inglés. Español aún no está disponible.</string>
 </resources>

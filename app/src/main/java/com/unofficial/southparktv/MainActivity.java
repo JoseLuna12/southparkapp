@@ -97,16 +97,36 @@ public final class MainActivity extends Activity {
         header.addView(context, contextParams);
         Button sourceButton = new Button(this);
         sourceButton.setId(R.id.catalog_source);
-        sourceButton.setText(R.string.source_current);
+        sourceButton.setText(R.string.language_current);
         TvUi.styleButton(this, sourceButton);
         sourceButton.setNextFocusDownId(R.id.season_list);
         sourceButton.setOnClickListener(v -> {
+            LinearLayout choices = column();
+            int inset = dimension(R.dimen.tv_space_2);
+            choices.setPaddingRelative(inset, inset, inset, 0);
+            Button english = new Button(this);
+            english.setId(R.id.language_english);
+            english.setText(R.string.language_english_selected);
+            TvUi.styleButton(this, english);
+            choices.addView(english, new LinearLayout.LayoutParams(-1, -2));
+            Button spanish = new Button(this);
+            spanish.setId(R.id.language_spanish);
+            spanish.setText(R.string.language_spanish_unavailable);
+            TvUi.styleButton(this, spanish);
+            spanish.setEnabled(false);
+            LinearLayout.LayoutParams spanishParams = new LinearLayout.LayoutParams(-1, -2);
+            spanishParams.topMargin = dimension(R.dimen.tv_space_1);
+            choices.addView(spanish, spanishParams);
             AlertDialog dialog = TvUi.showDialog(new AlertDialog.Builder(this)
-                    .setTitle(R.string.source_title)
-                    .setMessage(R.string.source_options)
-                    .setPositiveButton(R.string.source_current, (d, which) ->
-                            getSharedPreferences("sources", MODE_PRIVATE).edit().putString("selected", source.id).apply())
-                    .setNegativeButton(R.string.dialog_back, null));
+                    .setTitle(R.string.language_title)
+                    .setMessage(R.string.language_availability)
+                    .setView(choices)
+                    .setPositiveButton(R.string.dialog_back, null));
+            english.setOnClickListener(choice -> {
+                getSharedPreferences("sources", MODE_PRIVATE).edit().putString("selected", source.id).apply();
+                dialog.dismiss();
+            });
+            english.requestFocus();
             dialog.setOnDismissListener(d -> sourceButton.requestFocus());
         });
         header.addView(sourceButton, wrap());

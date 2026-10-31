@@ -34,6 +34,8 @@ public class RegionalSourceTest {
                 "/episodes/%2e%2e/other"}) {
             assertThrows(address, IllegalArgumentException.class, () -> RegionalSource.US.page(address));
         }
+        assertEquals("https://www.southparkstudios.com/api/context/mgid%3Aarc%3Aseason/episode/2/10",
+                RegionalSource.US.page("/api/context/mgid%3Aarc%3Aseason/episode/2/10"));
         assertTrue(RegionalSource.US.service("https://topaz.paramount.tech/topaz/api/example/mica.json"));
         assertFalse(RegionalSource.US.service("https://topaz.paramount.tech/other"));
         assertFalse(RegionalSource.US.service("https://user@topaz.paramount.tech/topaz/api/a"));

@@ -2,7 +2,7 @@
 
 Implements the architecture subset of [PR #3](https://github.com/JoseLuna12/southparkapp/pull/3). LATAM remains unverified. No LATAM endpoint was identified in that plan, so none is guessed here.
 
-The catalog header opens a D-pad source dialog through TvUi. US · English is the only enabled source. LATAM · Latin American Spanish is informational and cannot be selected. Confirming US persists its stable source ID. Back restores focus to the source button. UI remains English; content labels describe expected language, not guaranteed audio tracks or access rights.
+The catalog header shows “South Park en inglés”. The D-pad opens “Idioma” with “Inglés · Seleccionado” and a disabled “Español · No disponible” action. Only confirming English persists the enabled source ID. Selecting English or pressing Back restores focus to the language button. No geographic source names or technical configuration appear in this dialog. The remaining app controls stay in English. Spanish is unavailable until an official catalog and playback are verified; the UI does not present English metadata as a Spanish catalog.
 
 RegionalSource owns the origin, catalog paths, session platform, service and image hosts, URL checks and preference filenames. SiteClient has an immutable source and validates redirects at every hop. Catalog parsing takes the source explicitly. The player receives its source ID in the launch Intent and retains it across Next, autoplay and activity recreation. Unknown or unavailable player sources are rejected before network or history access. No new playback system, dependency or auto-update is included.
 
@@ -18,4 +18,4 @@ The existing locked/auth gates, fresh sessions, privacy/ad parameters, Fit, remo
 
 ## Validation of this change
 
-Build, JVM tests, lint and design-token checks are run for this MVP. Live emulator checks were not run: emulator-5554 was not connected. No physical TV was used. LATAM playback, source switching, ad-break delivery and DRM remain unverified.
+Build, 26 JVM tests, lint and design-token checks pass for the language UI update. Emulator language navigation and screenshots are recorded in docs/evidence/5-codex-language/. The full playback smoke suite was not rerun for this UI-only update. No physical TV was used. LATAM playback, source switching, ad-break delivery and DRM remain unverified.
