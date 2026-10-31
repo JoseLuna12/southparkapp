@@ -90,3 +90,7 @@ English UI only at present. 1.2 font scale and animator scale zero were tested o
 ## Primary references
 
 [Android TV design](https://developer.android.com/design/ui/tv), [layouts](https://developer.android.com/design/ui/tv/guides/styles/layouts), [focus](https://developer.android.com/design/ui/tv/guides/styles/focus-system), [remote navigation](https://developer.android.com/training/tv/get-started/navigation), [TV accessibility](https://developer.android.com/training/tv/accessibility), [Media3 Views/customization](https://developer.android.com/media/media3/ui/customization). Detailed source/uncertainty records are in the research archive.
+
+## App updates
+
+The catalog update action has a 16dp gap after Reload. The update screen uses the shared heading/body styles and safe insets, 16dp title-to-introduction spacing, a separate status block and a horizontal action row with a 16dp gap. Buttons size to their labels and retain the shared 52dp minimum target. Request completion never moves focus away from Back.

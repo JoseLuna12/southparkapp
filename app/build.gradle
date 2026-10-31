@@ -9,8 +9,21 @@ android {
         applicationId 'com.unofficial.southparktv'
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName '0.5.1'
+        versionCode 9
+        versionName '0.6.2'
+    }
+    signingConfigs {
+        release {
+            if (System.getenv('SPTV_KEYSTORE')) {
+                storeFile file(System.getenv('SPTV_KEYSTORE'))
+                storePassword System.getenv('SPTV_STORE_PASSWORD')
+                keyAlias System.getenv('SPTV_KEY_ALIAS')
+                keyPassword System.getenv('SPTV_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release { signingConfig signingConfigs.release }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -28,4 +41,14 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20250517'
+}
+
+tasks.configureEach {
+    if (name == 'validateSigningRelease') {
+        doFirst {
+            ['SPTV_KEYSTORE', 'SPTV_STORE_PASSWORD', 'SPTV_KEY_ALIAS', 'SPTV_KEY_PASSWORD'].each {
+                if (!System.getenv(it)) throw new GradleException("Missing release signing environment: " + it)
+            }
+        }
+    }
 }

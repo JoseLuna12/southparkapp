@@ -134,7 +134,17 @@ public final class MainActivity extends Activity {
         TvUi.styleButton(this, reloadButton);
         reloadButton.setNextFocusDownId(R.id.episode_grid);
         reloadButton.setOnClickListener(v -> reloadSelectedSeason());
-        header.addView(reloadButton, wrap());
+        LinearLayout.LayoutParams reloadParams = wrap();
+        reloadParams.setMarginStart(dimension(R.dimen.tv_space_2));
+        header.addView(reloadButton, reloadParams);
+        Button updates = new Button(this);
+        updates.setId(R.id.app_updates);
+        updates.setText(R.string.update_title);
+        TvUi.styleButton(this, updates);
+        updates.setOnClickListener(v -> startActivity(new Intent(this, UpdateActivity.class)));
+        LinearLayout.LayoutParams updateParams = wrap();
+        updateParams.setMarginStart(dimension(R.dimen.tv_space_2));
+        header.addView(updates, updateParams);
         page.addView(header);
 
         historyRow = new LinearLayout(this);

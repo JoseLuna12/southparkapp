@@ -102,3 +102,11 @@ The player retains text-track preferences across player replacement for Next, co
 Watched flags use the existing completion threshold, survive partial rewatch and have a manual details-dialog toggle. Unit tests cover durable flags across new history entries, manual changes, completion migration and unchanged resume positions.
 
 Live caption transitions and the new details action remain unverified: emulator-5554 was unavailable for this change. No physical TV was used.
+
+## Manual GitHub app updater
+
+Implemented a separate manual update screen, GitHub Releases metadata/download validation and Android installer handoff. Build, JVM unit tests, lintDebug and the three design-token checks pass. JVM fixtures cover metadata and repository URL rejection. APK certificate/package checks use Android PackageManager and have not been exercised with signed upgrade fixtures. No emulator or physical TV was used for this change; D-pad traversal, permission settings, cancellation, installer outcomes and history preservation across an actual upgrade remain unverified. Player/catalog smoke checks were not rerun. No stable GitHub release was available at implementation time.
+
+### Physical TV update UI, 0.6.1
+
+With José's explicit physical-device authorization, ADB installed 0.6.1 / code 8 using install -r on MiTV_AFMU0, serial 192.168.1.89:5555. The APK certificate matches the previously installed 0.6.0 APK. The updated screen was visually inspected: safe insets, heading, status separation and 16dp action gap. D-pad Left/Right and OK operated the actions; Back retained focus after the check completed. The screen returned “You have the latest published version” against the newly published v0.6.1 release. Build, unit tests, lint and design-token checks pass. This was an ADB upgrade, not a completed in-app download/permission/installer upgrade; that path remains unverified. No playback smoke was run.
