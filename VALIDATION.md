@@ -102,3 +102,7 @@ The player retains text-track preferences across player replacement for Next, co
 Watched flags use the existing completion threshold, survive partial rewatch and have a manual details-dialog toggle. Unit tests cover durable flags across new history entries, manual changes, completion migration and unchanged resume positions.
 
 Live caption transitions and the new details action remain unverified: emulator-5554 was unavailable for this change. No physical TV was used.
+
+## Manual GitHub app updater
+
+Implemented a separate manual update screen, GitHub Releases metadata/download validation and Android installer handoff. Build, JVM unit tests, lintDebug and the three design-token checks pass. JVM fixtures cover metadata and repository URL rejection. APK certificate/package checks use Android PackageManager and have not been exercised with signed upgrade fixtures. No emulator or physical TV was used for this change; D-pad traversal, permission settings, cancellation, installer outcomes and history preservation across an actual upgrade remain unverified. Player/catalog smoke checks were not rerun. No stable GitHub release was available at implementation time.

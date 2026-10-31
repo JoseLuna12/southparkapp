@@ -67,4 +67,20 @@
     <string name="mark_unwatched">Mark as unwatched</string>
     <string name="episode_watched_metadata">✓ Watched · %1$s</string>
     <string name="episode_watched_accessibility">%1$s, watched</string>
+    <string name="update_title">App updates</string>
+    <string name="update_intro">Check GitHub Releases for a signed update. Back cancels a download.</string>
+    <string name="update_check">Check for update</string>
+    <string name="update_back">Back</string>
+    <string name="update_checking">Checking GitHub Releases…</string>
+    <string name="update_error">Update failed. Check your connection, available storage and release compatibility, then retry. Manual installation from the project GitHub Releases is also available.</string>
+    <string name="update_current">You have the latest published version.</string>
+    <string name="update_available">Version %1$s available (%2$.1f MiB).</string>
+    <string name="update_download">Download update</string>
+    <string name="update_downloading">Downloading and verifying… Back cancels.</string>
+    <string name="update_ready">Update verified. Choose Install to open Android’s installer.</string>
+    <string name="update_install">Install</string>
+    <string name="update_permission">Allow this app to install updates in Android settings, then return and choose Install again.</string>
+    <string name="update_settings">Open settings</string>
+    <string name="update_verifying">Verifying APK…</string>
+    <string name="update_installer">Installer opened. Android requires confirmation. If cancelled, choose Install to retry. This does not confirm installation.</string>
 </resources>

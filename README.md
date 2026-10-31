@@ -13,6 +13,10 @@ Shared foundations live in Android resources; `TvUi` and `EpisodeCard` provide r
 ![Redesigned catalog](docs/screenshots/redesign-catalog.png)
 ![Native player with softer text captions](docs/screenshots/subtitles-soft.png)
 
+## App updates
+
+Use **App updates** in the catalog to check GitHub Releases manually. See [publishing and verification](docs/auto-update.md) for signing, release assets and installation limits.
+
 ## Install
 
 APK: `app/build/outputs/apk/debug/app-debug.apk`.

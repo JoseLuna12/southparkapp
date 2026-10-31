@@ -13,4 +13,5 @@
     <item name="player_title" type="id" />
     <item name="player_back" type="id" />
     <item name="player_next" type="id" />
+    <item name="app_updates" type="id" />
 </resources>
