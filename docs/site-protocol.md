@@ -64,3 +64,7 @@ Authentication-required episodes are stopped before requesting playback. Unsuppo
 ## Remaining limits
 
 Only the two supplied full episodes have been playback-tested in the emulator. No ad break was served during those checks, so successful ad delivery is not yet validated. Captions, physical-TV audio/output, DRM-protected episodes, other regions and long-session expiry behavior need separate acceptance testing. Metadata surveying does not establish playback availability for each listed episode.
+
+## Spanish source discovery
+
+The official cc.com homepage links “Episodios en Español” to https://southpark.cc.com/es/seasons/south-park. Its indexed official catalog links Spanish episode pages under /es/episodios/, including https://southpark.cc.com/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1. On this Mac both URLs redirect to the same paths on www.southparkstudios.com and return 404. https://www.southpark.lat/ redirects to the English homepage. No Spanish catalog JSON, native playback session or audio was accessible locally; no CDN endpoint is inferred. See [exact checks and emulator evidence](evidence/5-codex-spanish/README.md) and [implementation limits](multiregion.md).

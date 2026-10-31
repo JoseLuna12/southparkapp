@@ -13,15 +13,24 @@ final class WatchHistory {
                  long positionMs, long durationMs, boolean completed) { }
 
     static Entry last(SharedPreferences preferences) {
-        try { return decode(preferences.getString("lastEpisode", "")); }
+        return last(preferences, RegionalSource.US);
+    }
+
+    static Entry last(SharedPreferences preferences, RegionalSource source) {
+        try { return decode(preferences.getString("lastEpisode", ""), source); }
         catch (JSONException | IllegalArgumentException e) { return null; }
     }
 
     static void save(SharedPreferences preferences, Entry entry) {
+        save(preferences, entry, RegionalSource.US);
+    }
+
+    static void save(SharedPreferences preferences, Entry entry, RegionalSource source) {
         try {
+            decode(encode(entry), source);
             SharedPreferences.Editor editor = preferences.edit().putString("lastEpisode", encode(entry))
                     .putLong(entry.episode().id(), entry.positionMs());
-            Entry previous = last(preferences);
+            Entry previous = last(preferences, source);
             if (previous != null && previous.completed() && !preferences.contains("watched:" + previous.episode().id())) {
                 editor.putBoolean("watched:" + previous.episode().id(), true);
             }
@@ -31,9 +40,13 @@ final class WatchHistory {
     }
 
     static boolean isWatched(SharedPreferences preferences, String id) {
+        return isWatched(preferences, id, RegionalSource.US);
+    }
+
+    static boolean isWatched(SharedPreferences preferences, String id, RegionalSource source) {
         String key = "watched:" + id;
         if (preferences.contains(key)) return preferences.getBoolean(key, false);
-        Entry last = last(preferences);
+        Entry last = last(preferences, source);
         return last != null && last.completed() && last.episode().id().equals(id);
     }
 
@@ -65,12 +78,16 @@ final class WatchHistory {
     }
 
     static Entry decode(String json) throws JSONException {
+        return decode(json, RegionalSource.US);
+    }
+
+    static Entry decode(String json, RegionalSource source) throws JSONException {
         JSONObject value = new JSONObject(json);
         String path = value.getString("path"), seasonPath = value.getString("seasonPath");
-        if (!path.startsWith("/episodes/") || !seasonPath.startsWith("/seasons/south-park")
+        if (!path.startsWith(source.episodesPath) || !(seasonPath.equals(source.seasonsPath) || seasonPath.startsWith(source.seasonsPath + "/"))
                 || value.getInt("season") < 1) throw new IllegalArgumentException("Invalid history page");
-        Catalog.officialPage(path);
-        Catalog.officialPage(seasonPath);
+        source.page(path);
+        source.page(seasonPath);
         return new Entry(new Catalog.Episode(value.getString("id"), value.getString("title"),
                 value.getString("label"), value.optString("description", ""), value.optString("duration", ""),
                 value.optString("image", ""), path, value.optBoolean("locked")), value.getInt("season"),

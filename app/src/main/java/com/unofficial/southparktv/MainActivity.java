@@ -31,7 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 /** Native catalog. Website HTML is fetched as data, never rendered in a WebView. */
 public final class MainActivity extends Activity {
-    private final SiteClient site = new SiteClient();
+    private RegionalSource source;
+    private SiteClient site;
     private final ExecutorService network = Executors.newSingleThreadExecutor();
     private final ThreadPoolExecutor images = new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS,
             new ArrayBlockingQueue<>(48), Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardOldestPolicy());
@@ -65,6 +66,10 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        try { source = RegionalSource.requireEnabled(getSharedPreferences("sources", MODE_PRIVATE)
+                .getString("selected", RegionalSource.US.id)); }
+        catch (IllegalArgumentException e) { source = RegionalSource.US; }
+        site = new SiteClient(source);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         LinearLayout page = column();
@@ -90,6 +95,38 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams contextParams = new LinearLayout.LayoutParams(0, -2, 1);
         contextParams.setMarginStart(dp(20));
         header.addView(context, contextParams);
+        Button sourceButton = new Button(this);
+        sourceButton.setId(R.id.catalog_source);
+        sourceButton.setText(source == RegionalSource.US ? R.string.language_current : R.string.language_spanish_current);
+        TvUi.styleButton(this, sourceButton);
+        sourceButton.setNextFocusDownId(R.id.season_list);
+        sourceButton.setOnClickListener(v -> {
+            LinearLayout choices = column();
+            int inset = dimension(R.dimen.tv_space_2);
+            choices.setPaddingRelative(inset, inset, inset, 0);
+            Button english = new Button(this);
+            english.setId(R.id.language_english);
+            english.setText(source == RegionalSource.US ? R.string.language_english_selected : R.string.language_english);
+            TvUi.styleButton(this, english);
+            choices.addView(english, new LinearLayout.LayoutParams(-1, -2));
+            Button spanish = new Button(this);
+            spanish.setId(R.id.language_spanish);
+            spanish.setText(source == RegionalSource.LATAM ? R.string.language_spanish_selected : R.string.language_spanish);
+            TvUi.styleButton(this, spanish);
+            LinearLayout.LayoutParams spanishParams = new LinearLayout.LayoutParams(-1, -2);
+            spanishParams.topMargin = dimension(R.dimen.tv_space_1);
+            choices.addView(spanish, spanishParams);
+            AlertDialog dialog = TvUi.showDialog(new AlertDialog.Builder(this)
+                    .setTitle(R.string.language_title)
+                    .setMessage(R.string.language_availability)
+                    .setView(choices)
+                    .setPositiveButton(R.string.dialog_back, null));
+            english.setOnClickListener(choice -> { dialog.dismiss(); chooseSource(RegionalSource.US); });
+            spanish.setOnClickListener(choice -> { dialog.dismiss(); chooseSource(RegionalSource.LATAM); });
+            (source == RegionalSource.US ? english : spanish).requestFocus();
+            dialog.setOnDismissListener(d -> sourceButton.requestFocus());
+        });
+        header.addView(sourceButton, wrap());
         reloadButton = new Button(this);
         reloadButton.setId(R.id.catalog_reload);
         reloadButton.setText(R.string.reload);
@@ -97,7 +134,9 @@ public final class MainActivity extends Activity {
         TvUi.styleButton(this, reloadButton);
         reloadButton.setNextFocusDownId(R.id.episode_grid);
         reloadButton.setOnClickListener(v -> reloadSelectedSeason());
-        header.addView(reloadButton, wrap());
+        LinearLayout.LayoutParams reloadParams = wrap();
+        reloadParams.setMarginStart(dimension(R.dimen.tv_space_2));
+        header.addView(reloadButton, reloadParams);
         Button updates = new Button(this);
         updates.setId(R.id.app_updates);
         updates.setText(R.string.update_title);
@@ -202,6 +241,16 @@ public final class MainActivity extends Activity {
         loadSeasons();
     }
 
+    private void chooseSource(RegionalSource target) {
+        if (source == target) return;
+        ++generation;
+        ++recommendationGeneration;
+        if (catalogRequest != null) catalogRequest.cancel(true);
+        getSharedPreferences("sources", MODE_PRIVATE).edit().putString("selected", target.id).apply();
+        // A new activity owns fresh views, executors, artwork bindings and recommendation state.
+        recreate();
+    }
+
     private int dp(float value) { return TvUi.dp(this, value); }
     private int dimension(int id) { return Math.round(getResources().getDimension(id)); }
     private LinearLayout column() {
@@ -243,7 +292,7 @@ public final class MainActivity extends Activity {
                         return;
                     }
                     seasonList.setAdapter(seasonAdapter());
-                    int number = getPreferences(MODE_PRIVATE).getInt("season", 12);
+                    int number = getSharedPreferences(source.catalogFile(), MODE_PRIVATE).getInt("season", 12);
                     Catalog.Season initial = seasons.stream().filter(s -> s.number() == number).findFirst()
                             .orElse(seasons.get(0));
                     int index = seasons.indexOf(initial);
@@ -253,7 +302,7 @@ public final class MainActivity extends Activity {
                     loadSeason(initial, false);
                 });
             } catch (Exception e) {
-                failure(ticket, getString(R.string.status_seasons_error), e, this::loadSeasons);
+                failure(ticket, getString(source == RegionalSource.LATAM ? R.string.language_spanish_error : R.string.status_seasons_error), e, this::loadSeasons);
             }
         });
     }
@@ -302,7 +351,7 @@ public final class MainActivity extends Activity {
                     if (isDestroyed() || ticket != generation) return;
                     loaded = true;
                     episodes = result;
-                    getPreferences(MODE_PRIVATE).edit().putInt("season", season.number()).apply();
+                    getSharedPreferences(source.catalogFile(), MODE_PRIVATE).edit().putInt("season", season.number()).apply();
                     setStatus(result.isEmpty() ? getString(R.string.status_empty_season)
                             : getString(R.string.status_counts,
                                     getResources().getQuantityString(R.plurals.episode_count, result.size(), result.size()),
@@ -377,7 +426,7 @@ public final class MainActivity extends Activity {
     }
 
     private void refreshHistory() {
-        WatchHistory.Entry last = WatchHistory.last(getSharedPreferences("playback", MODE_PRIVATE));
+        WatchHistory.Entry last = WatchHistory.last(getSharedPreferences(source.historyFile(), MODE_PRIVATE), source);
         historyRow.setVisibility(last == null ? View.GONE : View.VISIBLE);
         seasonList.setNextFocusUpId(last == null ? R.id.catalog_reload : R.id.continue_watching);
         grid.setNextFocusUpId(retryAction != null ? R.id.catalog_retry
@@ -439,7 +488,7 @@ public final class MainActivity extends Activity {
     private void startEpisode(Catalog.Episode episode, Catalog.Season season) {
         if (episode.locked()) { external(episode.path()); return; }
         rememberGridFocus(episode);
-        startActivity(new Intent(this, PlayerActivity.class).putExtra("id", episode.id())
+        startActivity(new Intent(this, PlayerActivity.class).putExtra("source", source.id).putExtra("id", episode.id())
                 .putExtra("title", episode.title()).putExtra("label", episode.label()).putExtra("path", episode.path())
                 .putExtra("description", episode.description()).putExtra("duration", episode.duration())
                 .putExtra("season", season.number()).putExtra("seasonPath", season.path()));
@@ -455,10 +504,10 @@ public final class MainActivity extends Activity {
                 .setPositiveButton(episode.locked() ? R.string.dialog_official_site : R.string.dialog_watch_episode,
                         (dialog, which) -> startEpisode(episode, season))
                 .setNegativeButton(R.string.dialog_back, null)
-                .setNeutralButton(WatchHistory.isWatched(getSharedPreferences("playback", MODE_PRIVATE), episode.id())
+                .setNeutralButton(WatchHistory.isWatched(getSharedPreferences(source.historyFile(), MODE_PRIVATE), episode.id(), source)
                         ? R.string.mark_unwatched : R.string.mark_watched, (dialog, which) -> {
-                    var preferences = getSharedPreferences("playback", MODE_PRIVATE);
-                    WatchHistory.setWatched(preferences, episode.id(), !WatchHistory.isWatched(preferences, episode.id()));
+                    var preferences = getSharedPreferences(source.historyFile(), MODE_PRIVATE);
+                    WatchHistory.setWatched(preferences, episode.id(), !WatchHistory.isWatched(preferences, episode.id(), source));
                     if (grid.getAdapter() instanceof BaseAdapter adapter) adapter.notifyDataSetChanged();
                 });
         TvUi.showDialog(builder);
@@ -466,7 +515,7 @@ public final class MainActivity extends Activity {
     }
 
     private void external(String path) {
-        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Catalog.officialPage(path)))); }
+        try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(source.page(path)))); }
         catch (Exception e) {
             TvUi.showDialog(new AlertDialog.Builder(this).setMessage(R.string.status_browser_unavailable)
                     .setPositiveButton(android.R.string.ok, null));
@@ -504,7 +553,7 @@ public final class MainActivity extends Activity {
             EpisodeCard card = recycled instanceof EpisodeCard ? (EpisodeCard) recycled : new EpisodeCard(MainActivity.this);
             String address = artworkAddress(episode.image());
             card.bind(episode, grid.getColumnWidth() > 0 ? grid.getColumnWidth() : dp(220), address,
-                    WatchHistory.isWatched(getSharedPreferences("playback", MODE_PRIVATE), episode.id()));
+                    WatchHistory.isWatched(getSharedPreferences(source.historyFile(), MODE_PRIVATE), episode.id(), source));
             loadArtwork(card, address);
             return card;
         }
@@ -516,7 +565,7 @@ public final class MainActivity extends Activity {
         if (cached != null) { card.showArtwork(address, cached); return; }
         images.execute(() -> {
             try {
-                byte[] bytes = SiteClient.download(address, 2 * 1024 * 1024);
+                byte[] bytes = SiteClient.download(source, address, 2 * 1024 * 1024);
                 Bitmap bitmap = decodeArtwork(bytes);
                 if (bitmap == null || isDestroyed()) return;
                 imageCache.put(address, bitmap);
