@@ -42,7 +42,8 @@ import java.util.concurrent.Future;
 /** Full-screen native player, including Google's native IMA DAI integration. */
 @androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
 public final class PlayerActivity extends Activity {
-    private final SiteClient site = new SiteClient();
+    private RegionalSource source;
+    private SiteClient site;
     private final ExecutorService network = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Catalog.Episode episode;
@@ -83,14 +84,17 @@ public final class PlayerActivity extends Activity {
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Intent intent = getIntent();
+        try { source = RegionalSource.requireEnabled(intent.getStringExtra("source")); }
+        catch (IllegalArgumentException e) { finish(); return; }
+        site = new SiteClient(source);
         String id = intent.getStringExtra("id"), path = intent.getStringExtra("path"), title = intent.getStringExtra("title");
-        if (id == null || path == null || title == null || !path.startsWith("/episodes/")) { finish(); return; }
+        if (id == null || path == null || title == null || !path.startsWith(source.episodesPath)) { finish(); return; }
         episode = new Catalog.Episode(id, title, intent.getStringExtra("label"),
                 intent.getStringExtra("description"), intent.getStringExtra("duration"), "", path, false);
         season = intent.getIntExtra("season", 0);
         seasonPath = intent.getStringExtra("seasonPath");
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        resumePosition = getSharedPreferences("playback", MODE_PRIVATE).getLong(id, 0);
+        resumePosition = getSharedPreferences(source.historyFile(), MODE_PRIVATE).getLong(id, 0);
         view = new PlayerView(this);
         view.setId(R.id.player_view);
         styleTransport();
@@ -418,7 +422,7 @@ public final class PlayerActivity extends Activity {
                 .setPositiveButton(R.string.player_error_retry, (d, w) -> load())
                 .setNegativeButton(R.string.player_error_back, (d, w) -> finish())
                 .setNeutralButton(R.string.player_error_official, (d, w) -> {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Catalog.officialPage(episode.path())))); }
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(source.page(episode.path())))); }
                     catch (android.content.ActivityNotFoundException e) { errorShown = false; error(getString(R.string.player_no_browser)); }
                 }).setOnCancelListener(d -> finish()));
     }
@@ -429,8 +433,8 @@ public final class PlayerActivity extends Activity {
         WatchHistory.Entry entry = WatchHistory.snapshot(episode, season, seasonPath,
                 player.getContentPosition(), player.getContentDuration(), player.getPlaybackState() == Player.STATE_ENDED);
         resumePosition = entry.positionMs();
-        if (season > 0 && seasonPath != null) WatchHistory.save(getSharedPreferences("playback", MODE_PRIVATE), entry);
-        else getSharedPreferences("playback", MODE_PRIVATE).edit().putLong(episode.id(), resumePosition).apply();
+        if (season > 0 && seasonPath != null) WatchHistory.save(getSharedPreferences(source.historyFile(), MODE_PRIVATE), entry);
+        else getSharedPreferences(source.historyFile(), MODE_PRIVATE).edit().putLong(episode.id(), resumePosition).apply();
     }
 
     private void rememberCaptions() {

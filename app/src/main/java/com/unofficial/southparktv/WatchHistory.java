@@ -67,7 +67,7 @@ final class WatchHistory {
     static Entry decode(String json) throws JSONException {
         JSONObject value = new JSONObject(json);
         String path = value.getString("path"), seasonPath = value.getString("seasonPath");
-        if (!path.startsWith("/episodes/") || !seasonPath.startsWith("/seasons/south-park")
+        if (!path.startsWith(RegionalSource.US.episodesPath) || !(seasonPath.equals(RegionalSource.US.seasonsPath) || seasonPath.startsWith(RegionalSource.US.seasonsPath + "/"))
                 || value.getInt("season") < 1) throw new IllegalArgumentException("Invalid history page");
         Catalog.officialPage(path);
         Catalog.officialPage(seasonPath);

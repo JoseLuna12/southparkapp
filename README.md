@@ -25,6 +25,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 The launcher name is **South Park TV · Unofficial**. Alternatively, transfer the APK to the TV and install it with a trusted file manager after granting that file manager permission to install unknown apps.
 
+## Regional sources
+
+The catalog header offers **US · English**, the current official source. LATAM is shown as unverified and cannot be selected. Source choice does not grant regional rights or guarantee audio tracks. [MVP architecture and activation requirements](docs/multiregion.md).
+
 ## Use
 
 - Select a season in the left sidebar and press OK.
