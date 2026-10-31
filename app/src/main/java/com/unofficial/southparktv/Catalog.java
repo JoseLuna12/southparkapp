@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -15,7 +16,7 @@ import java.util.regex.Pattern;
 
 /** Parses data sent to the public website. Does not execute website JavaScript. */
 final class Catalog {
-    static final String BASE = RegionalSource.US.origin;
+    static final String BASE = "https://www.southparkstudios.com";
     private static final Pattern DATA = Pattern.compile("window\\.__DATA__\\s*=\\s*");
 
     record Season(int number, String path) { }
@@ -32,17 +33,13 @@ final class Catalog {
     }
 
     static List<Season> seasons(JSONObject page, String currentPath) throws JSONException {
-        return seasons(page, currentPath, RegionalSource.US);
-    }
-
-    static List<Season> seasons(JSONObject page, String currentPath, RegionalSource source) throws JSONException {
         Map<Integer, Season> result = new LinkedHashMap<>();
         visit(page, object -> {
             int number = object.optInt("seasonNumber", 0);
             if (number > 0 && object.has("label") && object.has("url")) {
                 String path = string(object, "url");
                 if (path.isEmpty()) path = currentPath;
-                if ((path.equals(source.seasonsPath) || path.startsWith(source.seasonsPath + "/"))) result.put(number, new Season(number, path));
+                if (path.startsWith("/seasons/south-park")) result.put(number, new Season(number, path));
             }
         });
         if (result.isEmpty()) throw new JSONException("No seasons were found on the official site.");
@@ -52,10 +49,6 @@ final class Catalog {
     }
 
     static SeasonPage seasonPage(JSONObject page) throws JSONException {
-        return seasonPage(page, RegionalSource.US);
-    }
-
-    static SeasonPage seasonPage(JSONObject page, RegionalSource source) throws JSONException {
         List<JSONObject> guides = new ArrayList<>();
         visit(page, object -> {
             if (object.has("isEpisodes") && object.has("items")) guides.add(object);
@@ -73,14 +66,10 @@ final class Catalog {
             return new SeasonPage(new ArrayList<>(), "");
         }
         JSONObject more = guide.optJSONObject("loadMore");
-        return new SeasonPage(episodes(guide, source), more == null ? "" : string(more, "url"));
+        return new SeasonPage(episodes(guide), more == null ? "" : string(more, "url"));
     }
 
     static List<Episode> episodes(JSONObject feed) throws JSONException {
-        return episodes(feed, RegionalSource.US);
-    }
-
-    static List<Episode> episodes(JSONObject feed, RegionalSource source) throws JSONException {
         JSONArray items = feed.getJSONArray("items");
         List<Episode> episodes = new ArrayList<>();
         for (int i = 0; i < items.length(); i++) {
@@ -96,7 +85,7 @@ final class Catalog {
             episodes.add(new Episode(item.getString("id"), meta.getString("subHeader"),
                     title == null ? "" : title.optString("text", ""), meta.optString("description", ""),
                     media.optString("duration", ""), image == null ? "" : image.optString("url", ""),
-                    path, !locked.isEmpty() || !path.startsWith(source.episodesPath)));
+                    path, !locked.isEmpty() || !path.startsWith("/episodes/")));
         }
         return episodes;
     }
@@ -112,7 +101,11 @@ final class Catalog {
     }
 
     static String officialPage(String path) {
-        return RegionalSource.US.page(path);
+        URI uri = URI.create(BASE).resolve(path);
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || !"www.southparkstudios.com".equalsIgnoreCase(uri.getHost())
+                || uri.getRawUserInfo() != null || (uri.getPort() != -1 && uri.getPort() != 443))
+            throw new IllegalArgumentException("Only official South Park pages are supported.");
+        return uri.toString();
     }
 
     // Android's org.json can stringify JSONObject.NULL as "null", unlike the JVM test library.

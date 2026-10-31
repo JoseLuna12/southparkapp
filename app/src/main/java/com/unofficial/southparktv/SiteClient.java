@@ -20,12 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final class SiteClient {
-    final RegionalSource source;
-    SiteClient() { this(RegionalSource.US); }
-    SiteClient(RegionalSource source) {
-        if (!source.enabled()) throw new IllegalArgumentException("Source is not verified");
-        this.source = source;
-    }
     static final String USER_AGENT = "SouthParkTV/0.2 (Android " + Build.VERSION.RELEASE + "; Android TV)";
     private static final Pattern NEXT = Pattern.compile("^(/api/context/[^/]+/episode/)(\\d+)(/\\d+)$");
     record Playback(String cmsId, String videoId, String authToken, Map<String, String> adParameters) { }
@@ -45,15 +39,13 @@ final class SiteClient {
     }
 
     List<Catalog.Season> seasons() throws Exception {
-        String path = source.seasonsPath;
-        android.util.Log.i("SouthParkSource", "Catalog source=" + source.id
-                + " page=" + source.page(path));
-        return Catalog.seasons(Catalog.pageData(get(source.page(path))), path, source);
+        String path = "/seasons/south-park";
+        return Catalog.seasons(Catalog.pageData(get(Catalog.officialPage(path))), path);
     }
 
     List<Catalog.Episode> episodes(Catalog.Season season) throws Exception {
-        JSONObject data = Catalog.pageData(get(source.page(season.path())));
-        Catalog.SeasonPage page = Catalog.seasonPage(data, source);
+        JSONObject data = Catalog.pageData(get(Catalog.officialPage(season.path())));
+        Catalog.SeasonPage page = Catalog.seasonPage(data);
         Map<String, Catalog.Episode> episodes = new LinkedHashMap<>();
         for (Catalog.Episode episode : page.episodes()) episodes.put(episode.id(), episode);
         String next = page.nextPage();
@@ -61,10 +53,9 @@ final class SiteClient {
         for (int count = 0; !next.isEmpty(); count++) {
             if (Thread.currentThread().isInterrupted()) throw new IOException("Request cancelled.");
             if (count >= 20) throw new IOException("The episode guide has too many pages. Please retry after updating the app.");
-            if (source.paginationPath == null) throw new IOException("Official pagination is not verified for this source.");
             Matcher matcher = NEXT.matcher(next);
             if (!matcher.matches()) throw new IOException("The official site's pagination format changed.");
-            List<Catalog.Episode> batch = Catalog.episodes(new JSONObject(get(source.page(next))), source);
+            List<Catalog.Episode> batch = Catalog.episodes(new JSONObject(get(Catalog.officialPage(next))));
             if (batch.isEmpty()) break;
             int previous = episodes.size();
             for (Catalog.Episode episode : batch) episodes.put(episode.id(), episode);
@@ -78,13 +69,14 @@ final class SiteClient {
 
     Playback playback(Catalog.Episode episode) throws Exception {
         if (episode.locked()) throw new IOException("This episode is not available for free playback on the official site.");
-        JSONObject detail = Catalog.videoDetail(Catalog.pageData(get(source.page(episode.path()))));
+        JSONObject detail = Catalog.videoDetail(Catalog.pageData(get(Catalog.officialPage(episode.path()))));
         if (detail.optBoolean("authRequired")) throw new IOException("The official site requires a provider login for this episode.");
         String service = detail.getString("videoServiceUrl").split("\\?", 2)[0];
         Uri uri = Uri.parse(service);
-        if (!source.service(service)) throw new IOException("Unrecognized official playback service.");
+        if (!"https".equals(uri.getScheme()) || !"topaz.paramount.tech".equals(uri.getHost()) ||
+                !uri.getPath().startsWith("/topaz/api/")) throw new IOException("Unrecognized official playback service.");
         String session = UUID.randomUUID().toString();
-        Uri micaUri = uri.buildUpon().appendQueryParameter("clientPlatform", source.platform)
+        Uri micaUri = uri.buildUpon().appendQueryParameter("clientPlatform", "androidtv")
                 .appendQueryParameter("deviceType", "tv").appendQueryParameter("os", "Android")
                 .appendQueryParameter("lat", "1").appendQueryParameter("ssus", session).build();
         JSONObject mica = new JSONObject(get(micaUri.toString()));
@@ -109,23 +101,18 @@ final class SiteClient {
         params.put("imafw__fw_is_lat", "1");
         params.put("imafw__vmn_ar", "0");
         params.put("imafw__fw_playid", UUID.randomUUID().toString());
-        params.put("imafw__fw_h_referer", source.page(episode.path()));
+        params.put("imafw__fw_h_referer", Catalog.officialPage(episode.path()));
         return new Playback(ima.getString("cmsid"), ima.getString("vid"), ima.getString("authtoken"), params);
     }
 
     static byte[] download(String address, int maxBytes) throws IOException {
-        return download(RegionalSource.US, address, maxBytes);
-    }
-
-    static byte[] download(RegionalSource source, String address, int maxBytes) throws IOException {
         URL url = new URL(address);
         for (int redirect = 0; redirect < 6; redirect++) {
-            try { source.checkDownload(url.toString()); }
-            catch (IllegalArgumentException e) {
-                android.util.Log.i("SouthParkSource", "Rejected redirect source="
-                        + source.id + " host=" + url.getHost());
-                throw new IOException("Unsupported official address.", e);
-            }
+            String host = url.getHost();
+            if (!"https".equals(url.getProtocol()) || !(host.equals("www.southparkstudios.com") ||
+                    host.equals("topaz.paramount.tech") || host.equals("images.paramount.tech")) ||
+                    url.getUserInfo() != null || (url.getPort() != -1 && url.getPort() != 443))
+                throw new IOException("The official service redirected to an unsupported address.");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(false);
             connection.setConnectTimeout(15000);
@@ -155,7 +142,7 @@ final class SiteClient {
         throw new IOException("Too many redirects from the official service.");
     }
 
-    private String get(String address) throws IOException {
-        return new String(download(source, address, 8 * 1024 * 1024), StandardCharsets.UTF_8);
+    private static String get(String address) throws IOException {
+        return new String(download(address, 8 * 1024 * 1024), StandardCharsets.UTF_8);
     }
 }
