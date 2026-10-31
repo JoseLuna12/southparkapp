@@ -27,7 +27,7 @@ The launcher name is **South Park TV · Unofficial**. Alternatively, transfer th
 
 ## Regional sources
 
-The catalog header shows **South Park en inglés**. Open **Idioma** with the D-pad to see English selected and Spanish unavailable. Spanish stays disabled until an official Spanish-language catalog and playback are verified. [MVP architecture and activation requirements](docs/multiregion.md).
+The catalog header offers English or Spanish through **Idioma**. Spanish connects to the [official Spanish catalog](https://southpark.cc.com/es/seasons/south-park), but this Mac currently receives an official redirect followed by 404. The app keeps Spanish selected with Retry and never substitutes the English catalog. Native Spanish playback and actual Latin American audio remain unverified. [Connection evidence and remaining work](docs/multiregion.md).
 
 ## Use
 

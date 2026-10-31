@@ -1,0 +1,4 @@
+I/SouthParkSource( 4540): Catalog source=us page=https://www.southparkstudios.com/seasons/south-park
+I/SouthParkSource( 4623): Catalog source=us page=https://www.southparkstudios.com/seasons/south-park
+I/SouthParkSource( 4623): Catalog source=latam page=https://southpark.cc.com/es/seasons/south-park
+I/SouthParkSource( 4623): Rejected redirect source=latam host=www.southparkstudios.com

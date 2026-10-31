@@ -1,21 +1,38 @@
-# Regional sources MVP
+# Official language sources
 
-Implements the architecture subset of [PR #3](https://github.com/JoseLuna12/southparkapp/pull/3). LATAM remains unverified. No LATAM endpoint was identified in that plan, so none is guessed here.
+The header opens a D-pad language dialog: English and Spanish are both selectable. Spanish now requests the published official Spanish catalog link, not a fabricated LATAM endpoint. It is not verified playable from this Mac. See [HTTPS and emulator evidence](evidence/5-codex-spanish/README.md).
 
-The catalog header shows “South Park en inglés”. The D-pad opens “Idioma” with “Inglés · Seleccionado” and a disabled “Español · No disponible” action. Only confirming English persists the enabled source ID. Selecting English or pressing Back restores focus to the language button. No geographic source names or technical configuration appear in this dialog. The remaining app controls stay in English. Spanish is unavailable until an official catalog and playback are verified; the UI does not present English metadata as a Spanish catalog.
+## Discovery and current limit
 
-RegionalSource owns the origin, catalog paths, session platform, service and image hosts, URL checks and preference filenames. SiteClient has an immutable source and validates redirects at every hop. Catalog parsing takes the source explicitly. The player receives its source ID in the launch Intent and retains it across Next, autoplay and activity recreation. Unknown or unavailable player sources are rejected before network or history access. No new playback system, dependency or auto-update is included.
+The official [South Park homepage](https://southpark.cc.com/) links “Episodios en Español” to [the Spanish catalog](https://southpark.cc.com/es/seasons/south-park). That catalog's indexed official page links [Cartman consigue una sonda anal](https://southpark.cc.com/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1). Its terms link points to www.southpark.lat. These establish official provenance and public Spanish page paths, not audible Latin American dubbing or native streaming compatibility. The es-419 field is expected language only.
 
-US owns the existing playback and MainActivity preference files. This assigns all old positions, watched flags, last episode and selected season to US without copying or deleting data. Reopening is idempotent. Other IDs have separate filenames, including the unavailable LATAM stub. History URL decoding currently accepts only the enabled US profile. There is no cross-source resume matching.
+Real curl requests from this Mac, with certificate verification and normal network identity, return:
 
-## LATAM activation remains pending
+| Requested URL | Observed result |
+| --- | --- |
+| https://www.southpark.lat/ | 301 to https://www.southparkstudios.com/, then 200 English homepage |
+| https://southpark.cc.com/es/seasons/south-park | 301 to https://www.southparkstudios.com/es/seasons/south-park, then 404 |
+| https://www.southparkstudios.com/es/seasons/south-park | 404 |
+| Official Spanish episode linked above | 301 to the same Spanish path on www.southparkstudios.com, then 404 |
 
-Before enabling LATAM, identify official origins and paths from public official references, then verify paginated catalog, detail, fresh androidtv HLS/IMA sessions, rights, served ads and actual audio/caption tracks on a legitimate network. An es-419 preference is not proof of dubbing. Different authentication, DRM or advertising requires separate evaluation.
+A different fetch service sees Spanish metadata at the official cc.com link. That does not prove this Mac has access. The local 301/404 is compatible with regional routing or changed site configuration; no explicit geoblock response was received, so the cause is not established.
 
-This MVP has no active source switching because only one source is verified. Before enabling a second profile, implement source-change cancellation and generation invalidation, empty prior catalog/history actions, scope delayed artwork/cache keys by source, restore the selected season from that source, and keep failed selections visible with Retry. Make history decoding profile-aware and test A-to-B delayed responses and same-ID histories with independent fixtures. Do not enable a second profile by merely filling in its origin.
+## Implementation
 
-The existing locked/auth gates, fresh sessions, privacy/ad parameters, Fit, remote controls, captions, Next and natural autoplay remain in place. No location spoofing or alternate source fallback is added.
+RegionalSource centralizes source origins, public page paths and network gates. The Spanish profile points to https://southpark.cc.com with /es/seasons/south-park and /es/episodios/. No Spanish pagination route, playback service host/path or platform is authorized because those contracts could not be observed here. If a future response supplies pagination or native playback, the app fails closed until those contracts are verified. This is a real selectable catalog connection with a visible failure on this network, not completed Spanish playback support.
 
-## Validation of this change
+Changing language invalidates catalog/recommendation generations, cancels pending catalog work and recreates MainActivity. Each activity owns its immutable source selection, fresh views, executors and artwork cache/binding state. Destroyed activity callbacks cannot update the new catalog. Failed Spanish loading retains the Spanish label, empty lists and Retry; it never silently loads English. Returning to English uses its own season/history state. Player launch carries the source explicitly through Next/autoplay and recreation.
 
-Build, 26 JVM tests, lint and design-token checks pass for the language UI update. Emulator language navigation and screenshots are recorded in docs/evidence/5-codex-language/. The full playback smoke suite was not rerun for this UI-only update. No physical TV was used. LATAM playback, source switching, ad-break delivery and DRM remain unverified.
+US keeps the original playback and MainActivity preference files. Spanish uses playback:latam and catalog:latam. History decoding and saves validate against the supplied source; no positions are copied between sources, even for matching episode IDs.
+
+Safe catalog request logging records only source ID and the public catalog URL. Rejected-redirect logging records source ID and destination host only. Session URLs, tokens, signed media URLs, cookies and response headers are not logged or published.
+
+## Validation and pending work
+
+assembleDebug, all 27 JVM tests, lintDebug and the 3 design-token checks pass. Tests cover published Spanish page resolution, rejection of English/cross-origin fallback, profile-specific history decoding and existing US parsing/history behavior.
+
+On emulator-5554 with the installed current APK, D-pad selection makes a real request to the Spanish catalog. The official redirect to www.southparkstudios.com is rejected before following it. Spanish remains selected after process restart. No old English cards appear. D-pad return to English restores its real 14-episode Season 12 catalog. Captures and sanitized logs are in docs/evidence/5-codex-spanish/.
+
+Spanish catalog JSON, complete pagination, session, actual Latin American audio, captions, ads and DRM remain unverified. No Spanish playback was attempted because there is no accessible Spanish episode catalog on this connection. Full playback/audio smoke and full TV UI regression suites were not rerun. No physical TV, VPN, proxy, geographic headers, alternate stream source, auth/DRM bypass, auto-update or merge was used.
+
+To finish Spanish playback, obtain legitimate access to the published source, inspect its actual catalog and fresh session contract, authorize only the observed endpoints and add independent fixtures. Then test audible dubbing, real caption cues, ads, history/Continue/Next and cancellation under delayed two-source responses. The current change cannot honestly claim that Spanish playback works.

@@ -2,13 +2,14 @@ package com.unofficial.southparktv;
 
 import java.net.URI;
 
-/** Official source configuration. Unverified sources deliberately have no network configuration. */
+/** Exact official sources. A selectable catalog does not imply verified native playback. */
 final class RegionalSource {
     static final RegionalSource US = new RegionalSource("us", "en", "https://www.southparkstudios.com",
             "/seasons/south-park", "/episodes/", "/api/context/", "topaz.paramount.tech", "/topaz/api/",
             "images.paramount.tech", "androidtv");
-    static final RegionalSource LATAM = new RegionalSource("latam", "es-419", null, null, null, null,
-            null, null, null, null);
+    static final RegionalSource LATAM = new RegionalSource("latam", "es-419", "https://southpark.cc.com",
+            "/es/seasons/south-park", "/es/episodios/", null, null, null,
+            "images.paramount.tech", null);
     final String id, language, origin, seasonsPath, episodesPath, paginationPath;
     final String serviceHost, servicePath, imageHost, platform;
 
@@ -25,6 +26,7 @@ final class RegionalSource {
 
     static RegionalSource requireEnabled(String id) {
         if (US.id.equals(id)) return US;
+        if (LATAM.id.equals(id)) return LATAM;
         throw new IllegalArgumentException("Unsupported official source");
     }
 
@@ -47,7 +49,7 @@ final class RegionalSource {
         String path = uri.getPath();
         if (!URI.create(origin).getHost().equalsIgnoreCase(uri.getHost())
                 || !(path.equals(seasonsPath) || path.startsWith(seasonsPath + "/")
-                || path.startsWith(episodesPath) || path.startsWith(paginationPath)))
+                || path.startsWith(episodesPath) || (paginationPath != null && path.startsWith(paginationPath))))
             throw new IllegalArgumentException("Unsupported official page");
         return uri.toString();
     }
@@ -55,7 +57,7 @@ final class RegionalSource {
     boolean service(String address) {
         try {
             URI uri = secure(address);
-            return serviceHost.equalsIgnoreCase(uri.getHost()) && uri.getPath().startsWith(servicePath);
+            return serviceHost != null && serviceHost.equalsIgnoreCase(uri.getHost()) && uri.getPath().startsWith(servicePath);
         } catch (IllegalArgumentException e) { return false; }
     }
 

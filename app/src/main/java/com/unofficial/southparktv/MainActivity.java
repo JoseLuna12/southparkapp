@@ -97,7 +97,7 @@ public final class MainActivity extends Activity {
         header.addView(context, contextParams);
         Button sourceButton = new Button(this);
         sourceButton.setId(R.id.catalog_source);
-        sourceButton.setText(R.string.language_current);
+        sourceButton.setText(source == RegionalSource.US ? R.string.language_current : R.string.language_spanish_current);
         TvUi.styleButton(this, sourceButton);
         sourceButton.setNextFocusDownId(R.id.season_list);
         sourceButton.setOnClickListener(v -> {
@@ -106,14 +106,13 @@ public final class MainActivity extends Activity {
             choices.setPaddingRelative(inset, inset, inset, 0);
             Button english = new Button(this);
             english.setId(R.id.language_english);
-            english.setText(R.string.language_english_selected);
+            english.setText(source == RegionalSource.US ? R.string.language_english_selected : R.string.language_english);
             TvUi.styleButton(this, english);
             choices.addView(english, new LinearLayout.LayoutParams(-1, -2));
             Button spanish = new Button(this);
             spanish.setId(R.id.language_spanish);
-            spanish.setText(R.string.language_spanish_unavailable);
+            spanish.setText(source == RegionalSource.LATAM ? R.string.language_spanish_selected : R.string.language_spanish);
             TvUi.styleButton(this, spanish);
-            spanish.setEnabled(false);
             LinearLayout.LayoutParams spanishParams = new LinearLayout.LayoutParams(-1, -2);
             spanishParams.topMargin = dimension(R.dimen.tv_space_1);
             choices.addView(spanish, spanishParams);
@@ -122,11 +121,9 @@ public final class MainActivity extends Activity {
                     .setMessage(R.string.language_availability)
                     .setView(choices)
                     .setPositiveButton(R.string.dialog_back, null));
-            english.setOnClickListener(choice -> {
-                getSharedPreferences("sources", MODE_PRIVATE).edit().putString("selected", source.id).apply();
-                dialog.dismiss();
-            });
-            english.requestFocus();
+            english.setOnClickListener(choice -> { dialog.dismiss(); chooseSource(RegionalSource.US); });
+            spanish.setOnClickListener(choice -> { dialog.dismiss(); chooseSource(RegionalSource.LATAM); });
+            (source == RegionalSource.US ? english : spanish).requestFocus();
             dialog.setOnDismissListener(d -> sourceButton.requestFocus());
         });
         header.addView(sourceButton, wrap());
@@ -234,6 +231,16 @@ public final class MainActivity extends Activity {
         loadSeasons();
     }
 
+    private void chooseSource(RegionalSource target) {
+        if (source == target) return;
+        ++generation;
+        ++recommendationGeneration;
+        if (catalogRequest != null) catalogRequest.cancel(true);
+        getSharedPreferences("sources", MODE_PRIVATE).edit().putString("selected", target.id).apply();
+        // A new activity owns fresh views, executors, artwork bindings and recommendation state.
+        recreate();
+    }
+
     private int dp(float value) { return TvUi.dp(this, value); }
     private int dimension(int id) { return Math.round(getResources().getDimension(id)); }
     private LinearLayout column() {
@@ -285,7 +292,7 @@ public final class MainActivity extends Activity {
                     loadSeason(initial, false);
                 });
             } catch (Exception e) {
-                failure(ticket, getString(R.string.status_seasons_error), e, this::loadSeasons);
+                failure(ticket, getString(source == RegionalSource.LATAM ? R.string.language_spanish_error : R.string.status_seasons_error), e, this::loadSeasons);
             }
         });
     }
@@ -409,7 +416,7 @@ public final class MainActivity extends Activity {
     }
 
     private void refreshHistory() {
-        WatchHistory.Entry last = WatchHistory.last(getSharedPreferences(source.historyFile(), MODE_PRIVATE));
+        WatchHistory.Entry last = WatchHistory.last(getSharedPreferences(source.historyFile(), MODE_PRIVATE), source);
         historyRow.setVisibility(last == null ? View.GONE : View.VISIBLE);
         seasonList.setNextFocusUpId(last == null ? R.id.catalog_reload : R.id.continue_watching);
         grid.setNextFocusUpId(retryAction != null ? R.id.catalog_retry
@@ -487,10 +494,10 @@ public final class MainActivity extends Activity {
                 .setPositiveButton(episode.locked() ? R.string.dialog_official_site : R.string.dialog_watch_episode,
                         (dialog, which) -> startEpisode(episode, season))
                 .setNegativeButton(R.string.dialog_back, null)
-                .setNeutralButton(WatchHistory.isWatched(getSharedPreferences(source.historyFile(), MODE_PRIVATE), episode.id())
+                .setNeutralButton(WatchHistory.isWatched(getSharedPreferences(source.historyFile(), MODE_PRIVATE), episode.id(), source)
                         ? R.string.mark_unwatched : R.string.mark_watched, (dialog, which) -> {
                     var preferences = getSharedPreferences(source.historyFile(), MODE_PRIVATE);
-                    WatchHistory.setWatched(preferences, episode.id(), !WatchHistory.isWatched(preferences, episode.id()));
+                    WatchHistory.setWatched(preferences, episode.id(), !WatchHistory.isWatched(preferences, episode.id(), source));
                     if (grid.getAdapter() instanceof BaseAdapter adapter) adapter.notifyDataSetChanged();
                 });
         TvUi.showDialog(builder);
@@ -536,7 +543,7 @@ public final class MainActivity extends Activity {
             EpisodeCard card = recycled instanceof EpisodeCard ? (EpisodeCard) recycled : new EpisodeCard(MainActivity.this);
             String address = artworkAddress(episode.image());
             card.bind(episode, grid.getColumnWidth() > 0 ? grid.getColumnWidth() : dp(220), address,
-                    WatchHistory.isWatched(getSharedPreferences(source.historyFile(), MODE_PRIVATE), episode.id()));
+                    WatchHistory.isWatched(getSharedPreferences(source.historyFile(), MODE_PRIVATE), episode.id(), source));
             loadArtwork(card, address);
             return card;
         }

@@ -1,0 +1,14 @@
+HTTPS checks from this Mac. TLS verification enabled. No cookies, location headers, VPN or proxy overrides.
+Command: curl --proto =https --proto-redir =https -LsS --max-time 30 -o /dev/null -w "%{http_code} %{url_effective}" URL
+
+https://www.southpark.lat/
+200 https://www.southparkstudios.com/
+
+https://southpark.cc.com/es/seasons/south-park
+404 https://www.southparkstudios.com/es/seasons/south-park
+
+https://www.southparkstudios.com/es/seasons/south-park
+404 https://www.southparkstudios.com/es/seasons/south-park
+
+https://southpark.cc.com/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1
+404 https://www.southparkstudios.com/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1

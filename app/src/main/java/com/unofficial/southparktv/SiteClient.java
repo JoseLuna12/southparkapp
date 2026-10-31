@@ -46,6 +46,8 @@ final class SiteClient {
 
     List<Catalog.Season> seasons() throws Exception {
         String path = source.seasonsPath;
+        android.util.Log.i("SouthParkSource", "Catalog source=" + source.id
+                + " page=" + source.page(path));
         return Catalog.seasons(Catalog.pageData(get(source.page(path))), path, source);
     }
 
@@ -59,6 +61,7 @@ final class SiteClient {
         for (int count = 0; !next.isEmpty(); count++) {
             if (Thread.currentThread().isInterrupted()) throw new IOException("Request cancelled.");
             if (count >= 20) throw new IOException("The episode guide has too many pages. Please retry after updating the app.");
+            if (source.paginationPath == null) throw new IOException("Official pagination is not verified for this source.");
             Matcher matcher = NEXT.matcher(next);
             if (!matcher.matches()) throw new IOException("The official site's pagination format changed.");
             List<Catalog.Episode> batch = Catalog.episodes(new JSONObject(get(source.page(next))), source);
@@ -118,7 +121,11 @@ final class SiteClient {
         URL url = new URL(address);
         for (int redirect = 0; redirect < 6; redirect++) {
             try { source.checkDownload(url.toString()); }
-            catch (IllegalArgumentException e) { throw new IOException("Unsupported official address.", e); }
+            catch (IllegalArgumentException e) {
+                android.util.Log.i("SouthParkSource", "Rejected redirect source="
+                        + source.id + " host=" + url.getHost());
+                throw new IOException("Unsupported official address.", e);
+            }
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(false);
             connection.setConnectTimeout(15000);

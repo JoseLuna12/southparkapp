@@ -433,7 +433,7 @@ public final class PlayerActivity extends Activity {
         WatchHistory.Entry entry = WatchHistory.snapshot(episode, season, seasonPath,
                 player.getContentPosition(), player.getContentDuration(), player.getPlaybackState() == Player.STATE_ENDED);
         resumePosition = entry.positionMs();
-        if (season > 0 && seasonPath != null) WatchHistory.save(getSharedPreferences(source.historyFile(), MODE_PRIVATE), entry);
+        if (season > 0 && seasonPath != null) WatchHistory.save(getSharedPreferences(source.historyFile(), MODE_PRIVATE), entry, source);
         else getSharedPreferences(source.historyFile(), MODE_PRIVATE).edit().putLong(episode.id(), resumePosition).apply();
     }
 

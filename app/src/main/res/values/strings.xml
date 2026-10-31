@@ -70,6 +70,10 @@
     <string name="language_current">South Park en inglés</string>
     <string name="language_title">Idioma</string>
     <string name="language_english_selected">Inglés · Seleccionado</string>
-    <string name="language_spanish_unavailable">Español · No disponible</string>
-    <string name="language_availability">Por ahora puedes ver South Park en inglés. Español aún no está disponible.</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_english">Inglés</string>
+    <string name="language_spanish_selected">Español · Seleccionado</string>
+    <string name="language_spanish_current">South Park en español</string>
+    <string name="language_spanish_error">No se pudo cargar el catálogo en español. Reintenta o cambia a inglés.</string>
+    <string name="language_availability">Elige el idioma de South Park. La disponibilidad depende del sitio oficial.</string>
 </resources>

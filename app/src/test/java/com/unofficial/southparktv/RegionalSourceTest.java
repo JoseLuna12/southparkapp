@@ -12,14 +12,32 @@ public class RegionalSourceTest {
         assertEquals("catalog:latam", RegionalSource.LATAM.catalogFile());
     }
 
-    @Test public void unverifiedSourceCannotResolveOrBeSelected() {
+    @Test public void spanishUsesPublishedOfficialLinkAndRejectsEnglishFallback() {
         assertEquals("es-419", RegionalSource.LATAM.language);
-        assertFalse(RegionalSource.LATAM.enabled());
-        assertNull(RegionalSource.LATAM.origin);
-        assertThrows(IllegalArgumentException.class, () -> RegionalSource.requireEnabled("latam"));
+        assertSame(RegionalSource.LATAM, RegionalSource.requireEnabled("latam"));
+        assertEquals("https://southpark.cc.com/es/seasons/south-park",
+                RegionalSource.LATAM.page("/es/seasons/south-park"));
+        assertEquals("https://southpark.cc.com/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1",
+                RegionalSource.LATAM.page("/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1"));
+        assertThrows(IllegalArgumentException.class, () -> RegionalSource.LATAM.page("/episodes/a"));
+        assertThrows(IllegalArgumentException.class, () -> RegionalSource.LATAM.page("https://www.southparkstudios.com/es/seasons/south-park"));
+        assertFalse(RegionalSource.LATAM.service("https://topaz.paramount.tech/topaz/api/a"));
+        assertNull(RegionalSource.LATAM.paginationPath);
         assertThrows(IllegalArgumentException.class, () -> RegionalSource.requireEnabled("unknown"));
         assertThrows(IllegalArgumentException.class, () -> RegionalSource.requireEnabled(null));
-        assertThrows(IllegalArgumentException.class, () -> RegionalSource.LATAM.page("/episodes/a"));
+    }
+
+    @Test public void spanishHistoryRestoresOnlyUnderItsOwnProfile() throws Exception {
+        String saved = """
+                {"id":"same-id","title":"Cartman consigue una sonda anal","label":"T1 E1",
+                 "path":"/es/episodios/940f8z/south-america-cartman-consigue-una-sonda-anal-temporada-1-ep-1",
+                 "season":1,"seasonPath":"/es/seasons/south-park","positionMs":45000,
+                 "durationMs":1320000,"completed":false}
+                """;
+        WatchHistory.Entry entry = WatchHistory.decode(saved, RegionalSource.LATAM);
+        assertEquals(45000, entry.positionMs());
+        assertEquals("same-id", entry.episode().id());
+        assertThrows(IllegalArgumentException.class, () -> WatchHistory.decode(saved, RegionalSource.US));
     }
 
     @Test public void pagesAndServicesUseExactSecureOriginsAndPaths() {
