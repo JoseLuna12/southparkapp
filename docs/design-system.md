@@ -77,7 +77,7 @@ English UI only at present. 1.2 font scale and animator scale zero were tested o
 
 ## Playback/security boundaries
 
-`Catalog`, `SiteClient` and `WatchHistory` are unchanged from the pre-redesign baseline. Keep their URL gates, pagination, official ordering, completion boundaries and existing history fields. Watched flags are additive per-episode preferences. Keep PlayerActivity's fresh MICA/IMA sessions, ad-aware seeks/Next, async generation/active checks, old-identity save/release order and Fit mode. Never theme IMA-owned controls or add provider/DRM/auth/region workarounds.
+`Catalog`, `SiteClient` and `WatchHistory` now use the regional-source configuration for the current US source. The catalog header language dialog uses `TvUi`, restores caller focus and offers English and Spanish, with the current language selected. Spanish requests the published official link; a failed request retains Spanish with Retry and no English cards. Geography and provider configuration remain internal; see [regional MVP limits](multiregion.md). Keep their URL gates, pagination, official ordering, completion boundaries and existing history fields. Watched flags are additive per-episode preferences. Keep PlayerActivity's fresh MICA/IMA sessions, ad-aware seeks/Next, async generation/active checks, old-identity save/release order and Fit mode. Never theme IMA-owned controls or add provider/DRM/auth/region workarounds.
 
 ## Change checklist
 

@@ -25,6 +25,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 The launcher name is **South Park TV · Unofficial**. Alternatively, transfer the APK to the TV and install it with a trusted file manager after granting that file manager permission to install unknown apps.
 
+## Regional sources
+
+The catalog header offers English or Spanish through **Idioma**. Spanish connects to the [official Spanish catalog](https://southpark.cc.com/es/seasons/south-park), but this Mac currently receives an official redirect followed by 404. The app keeps Spanish selected with Retry and never substitutes the English catalog. Native Spanish playback and actual Latin American audio remain unverified. [Connection evidence and remaining work](docs/multiregion.md).
+
 ## Use
 
 - Select a season in the left sidebar and press OK.
