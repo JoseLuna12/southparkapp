@@ -103,7 +103,9 @@ public final class MainActivity extends Activity {
         updates.setText(R.string.update_title);
         TvUi.styleButton(this, updates);
         updates.setOnClickListener(v -> startActivity(new Intent(this, UpdateActivity.class)));
-        header.addView(updates, wrap());
+        LinearLayout.LayoutParams updateParams = wrap();
+        updateParams.setMarginStart(dimension(R.dimen.tv_space_2));
+        header.addView(updates, updateParams);
         page.addView(header);
 
         historyRow = new LinearLayout(this);

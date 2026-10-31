@@ -83,4 +83,5 @@
     <string name="update_settings">Open settings</string>
     <string name="update_verifying">Verifying APK…</string>
     <string name="update_installer">Installer opened. Android requires confirmation. If cancelled, choose Install to retry. This does not confirm installation.</string>
+    <string name="update_idle">Ready to check for updates.</string>
 </resources>

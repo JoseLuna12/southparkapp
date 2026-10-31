@@ -27,21 +27,41 @@ public final class UpdateActivity extends Activity {
         int h = getResources().getDimensionPixelSize(R.dimen.tv_safe_horizontal);
         int v = getResources().getDimensionPixelSize(R.dimen.tv_safe_vertical);
         page.setPaddingRelative(h, v, h, v);
-        status = TvUi.text(this, getString(R.string.update_intro), R.dimen.tv_body_type, R.color.tv_text_primary);
+        TextView title = TvUi.text(this, getString(R.string.update_title), R.dimen.tv_heading_type, R.color.tv_text_primary);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        page.addView(title);
+        TextView intro = TvUi.text(this, getString(R.string.update_intro), R.dimen.tv_body_type, R.color.tv_text_secondary);
+        LinearLayout.LayoutParams introParams = new LinearLayout.LayoutParams(-1, -2);
+        introParams.topMargin = space(R.dimen.tv_space_2);
+        page.addView(intro, introParams);
+        status = TvUi.text(this, getString(R.string.update_idle), R.dimen.tv_body_type, R.color.tv_text_primary);
         status.setAccessibilityLiveRegion(android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        page.addView(status);
+        LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-1, -2);
+        statusParams.topMargin = space(R.dimen.tv_space_4);
+        statusParams.bottomMargin = space(R.dimen.tv_space_3);
+        page.addView(status, statusParams);
+        LinearLayout actions = new LinearLayout(this);
+        page.addView(actions);
         action = new Button(this); TvUi.styleButton(this, action);
-        action.setText(R.string.update_check); page.addView(action);
+        action.setId(R.id.update_action);
+        action.setText(R.string.update_check);
+        actions.addView(action, new LinearLayout.LayoutParams(-2, -2));
         action.setOnClickListener(view -> {
             if (apk != null) install();
             else if (release != null) download();
             else check();
         });
         Button back = new Button(this); TvUi.styleButton(this, back);
-        back.setText(R.string.update_back); page.addView(back);
+        back.setId(R.id.update_back_action);
+        back.setText(R.string.update_back);
+        LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-2, -2);
+        backParams.setMarginStart(space(R.dimen.tv_space_2));
+        actions.addView(back, backParams);
         back.setOnClickListener(view -> finish());
         setContentView(page); action.requestFocus();
     }
+
+    private int space(int id) { return getResources().getDimensionPixelSize(id); }
 
     private void run(int message, Callable<Runnable> task) {
         int token = ++generation;
@@ -49,10 +69,10 @@ public final class UpdateActivity extends Activity {
         request = worker.submit(() -> {
             try {
                 Runnable result = task.call();
-                runOnUiThread(() -> { if (!isDestroyed() && token == generation) { action.setEnabled(true); result.run(); action.requestFocus(); } });
+                runOnUiThread(() -> { if (!isDestroyed() && token == generation) { action.setEnabled(true); result.run(); } });
             } catch (Exception e) {
                 runOnUiThread(() -> { if (!isDestroyed() && token == generation) {
-                    status.setText(R.string.update_error); action.setEnabled(true); action.requestFocus();
+                    status.setText(R.string.update_error); action.setEnabled(true);
                 } });
             }
         });

@@ -43,3 +43,7 @@ Before installation the app checks exact size, SHA-256, package, strictly greate
 Back or leaving the update screen cancels current work and discards stale callbacks. Downloads do not survive process death. A later download overwrites any previous cache file; Android may evict cache at any time. Returning from settings requires another explicit Install action. Cancelled installation can be retried while the screen remains alive; after recreation, check/download again. Download status is indeterminate, with Back available to cancel.
 
 No release or permanent key is created by this change. The current repository has no latest stable release, so a real update cannot yet complete. Physical-TV installer support, D-pad behavior of vendor settings, same-signature upgrade and history preservation require device testing. No physical TV was used.
+
+## First test release
+
+Version 0.6.1, code 8, is a test release signed with the same local Android debug certificate as the code 7 installation used on José's TV. It is not a production-key migration. Preserve that local keystore securely for continuity, or plan an explicit manual migration before production distribution. The release assets include the APK and exact metadata generated from it.
