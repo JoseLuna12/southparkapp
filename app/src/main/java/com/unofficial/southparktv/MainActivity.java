@@ -97,9 +97,7 @@ public final class MainActivity extends Activity {
         TvUi.styleButton(this, reloadButton);
         reloadButton.setNextFocusDownId(R.id.episode_grid);
         reloadButton.setOnClickListener(v -> reloadSelectedSeason());
-        LinearLayout.LayoutParams reloadParams = wrap();
-        reloadParams.setMarginStart(dimension(R.dimen.tv_space_2));
-        header.addView(reloadButton, reloadParams);
+        header.addView(reloadButton, wrap());
         Button updates = new Button(this);
         updates.setId(R.id.app_updates);
         updates.setText(R.string.update_title);

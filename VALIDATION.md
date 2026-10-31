@@ -110,3 +110,7 @@ Implemented a separate manual update screen, GitHub Releases metadata/download v
 ### Physical TV update UI, 0.6.1
 
 With José's explicit physical-device authorization, ADB installed 0.6.1 / code 8 using install -r on MiTV_AFMU0, serial 192.168.1.89:5555. The APK certificate matches the previously installed 0.6.0 APK. The updated screen was visually inspected: safe insets, heading, status separation and 16dp action gap. D-pad Left/Right and OK operated the actions; Back retained focus after the check completed. The screen returned “You have the latest published version” against the newly published v0.6.1 release. Build, unit tests, lint and design-token checks pass. This was an ADB upgrade, not a completed in-app download/permission/installer upgrade; that path remains unverified. No playback smoke was run.
+
+## Withdrawal of unavailable Spanish source
+
+Version 0.6.3 / code 10 removes the experimental EN/ES selector and regional plumbing, restoring the pre-#5 English catalog/player/history implementation while retaining App updates. Old source-selection and isolated Spanish preferences are ignored without deletion; English continues using the original MainActivity/playback files. assembleDebug, all 26 remaining JVM tests, lintDebug and the three design-token checks pass. The four RegionalSource-only tests were removed with that module. No emulator/physical-TV installation, full playback/audio smoke or native in-app upgrade was performed for this removal.
