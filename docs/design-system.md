@@ -33,7 +33,7 @@ Source of truth: `app/src/main/res/values/{colors,dimens,strings,styles}.xml` an
 - **Loading:** preserve the shell, available actions and focus; show loading text/placeholder. Never move focus when artwork arrives.
 - **Empty:** explain that no full episodes are listed. Clips do not become episodes. Rail/Reload remain usable.
 - **Error:** readable error text plus a visible D-pad-reachable Retry. Do not rely on the error color alone. Retry the failed operation, not a different source or bypass.
-- **Completion/history:** Cards prepend a text checkmark and Watched label to metadata and include watched state in their accessible description. Details expose a manual watched/unwatched action using the shared dialog. Watched flags persist locally and use the existing completion threshold. Continue includes position; a completed episode offers Watch again. Up next can be loading, available, absent or retryable. Do not enable actions before a valid target exists.
+- **Completion/history:** Cards prepend a text checkmark and Watched label to metadata and include watched state in their accessible description. Details expose a manual watched/unwatched action using the shared dialog; that toggle does not move the resume position. Auto-complete is the `WatchHistory` threshold: playback ended, or duration of at least one minute and the earlier of 80% progress or two minutes remaining, never before halfway. On a 20–25 minute episode the binding mark is 80%. A completed entry stores position 0 and Continue offers Watch again; below the threshold Continue resumes the saved position. A later partial rewatch does not clear the watched flag. Up next can be loading, available, absent or retryable. Do not enable actions before a valid target exists.
 
 ## Shared building blocks
 
@@ -77,7 +77,7 @@ English UI only at present. 1.2 font scale and animator scale zero were tested o
 
 ## Playback/security boundaries
 
-`Catalog`, `SiteClient` and `WatchHistory` are unchanged from the pre-redesign baseline. Keep their URL gates, pagination, official ordering, completion boundaries and existing history fields. Watched flags are additive per-episode preferences. Keep PlayerActivity's fresh MICA/IMA sessions, ad-aware seeks/Next, async generation/active checks, old-identity save/release order and Fit mode. Never theme IMA-owned controls or add provider/DRM/auth/region workarounds.
+`Catalog` and `SiteClient` keep their URL gates, pagination and official ordering. `WatchHistory` keeps its stored fields and official-page checks. Completion is the threshold in `WatchHistory.snapshot`: natural end, or at least one minute and the earlier of 80% or two minutes remaining, never before halfway. Completed entries still save position 0. Watched flags are additive per-episode preferences. The details toggle calls `setWatched` and does not rewrite resume position. Keep PlayerActivity's fresh MICA/IMA sessions, ad-aware seeks/Next, async generation/active checks, old-identity save/release order and Fit mode. Never theme IMA-owned controls or add provider/DRM/auth/region workarounds.
 
 ## Change checklist
 

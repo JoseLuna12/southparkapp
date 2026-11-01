@@ -7,8 +7,22 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-/** One durable last-watched entry, alongside the existing per-episode resume positions. */
+/**
+ * One durable last-watched entry, alongside the existing per-episode resume positions.
+ *
+ * <p>An episode is completed when playback ends, or when progress crosses the watched
+ * threshold below. A completed snapshot stores position 0, so Continue offers Watch
+ * again from the start — the same outcome as a natural ending. Progress below the
+ * threshold keeps the clamped playhead, so Continue resumes there. Saving a completed
+ * entry sets the watched flag; a later partial rewatch does not clear it.
+ * {@link #setWatched} is the details-dialog toggle and does not move the resume position.
+ */
 final class WatchHistory {
+    /** Intros, bumpers and unknown durations are shorter than this and do not auto-complete. */
+    static final long MIN_COMPLETION_DURATION_MS = 60_000L;
+    /** Leaving with this much runtime left counts once the viewer is also past halfway. */
+    static final long COMPLETION_REMAINING_MS = 120_000L;
+
     record Entry(Catalog.Episode episode, int season, String seasonPath,
                  long positionMs, long durationMs, boolean completed) { }
 
@@ -41,11 +55,33 @@ final class WatchHistory {
         preferences.edit().putBoolean("watched:" + id, watched).apply();
     }
 
+    /**
+     * Watched threshold for ordinary episodes (about 20–25 minutes): the earlier of
+     * 80% of the runtime or two minutes remaining, and never before halfway.
+     * On a 22-minute episode, 80% is 17:36, so leaving during the last act counts.
+     * The two-minute window is earlier only for runtimes under ten minutes; the
+     * halfway floor keeps that window from marking the start of a short extra.
+     * Content under one minute completes only when playback actually ends.
+     */
     static Entry snapshot(Catalog.Episode episode, int season, String seasonPath,
                           long position, long duration, boolean ended) {
-        boolean completed = ended || duration > 10000 && position >= duration - 10000;
-        return new Entry(episode, season, seasonPath, completed ? 0 : Math.max(0, position),
-                Math.max(0, duration), completed);
+        long safePosition = Math.max(0, position);
+        long safeDuration = Math.max(0, duration);
+        boolean completed = ended || progressCountsAsWatched(safePosition, safeDuration);
+        return new Entry(episode, season, seasonPath, completed ? 0 : safePosition, safeDuration, completed);
+    }
+
+    private static boolean progressCountsAsWatched(long position, long duration) {
+        if (position <= 0 || duration < MIN_COMPLETION_DURATION_MS) return false;
+        if (atLeastEightyPercent(position, duration)) return true;
+        if (duration <= COMPLETION_REMAINING_MS) return false;
+        return position >= duration - COMPLETION_REMAINING_MS && position >= duration - position;
+    }
+
+    private static boolean atLeastEightyPercent(long position, long duration) {
+        // First millisecond at or above 4/5 of the runtime. Avoids position * 5 overflow.
+        long threshold = (duration / 5) * 4 + (duration % 5 * 4 + 4) / 5;
+        return position >= threshold;
     }
 
     static Catalog.Episode next(List<Catalog.Episode> episodes, String lastId) {

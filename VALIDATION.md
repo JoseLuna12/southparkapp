@@ -114,3 +114,9 @@ With José's explicit physical-device authorization, ADB installed 0.6.1 / code 
 ## Withdrawal of unavailable Spanish source
 
 Version 0.6.3 / code 10 removes the experimental EN/ES selector and regional plumbing, restoring the pre-#5 English catalog/player/history implementation while retaining App updates. Old source-selection and isolated Spanish preferences are ignored without deletion; English continues using the original MainActivity/playback files. assembleDebug, all 26 remaining JVM tests, lintDebug and the three design-token checks pass. The four RegionalSource-only tests were removed with that module. No emulator/physical-TV installation, full playback/audio smoke or native in-app upgrade was performed for this removal.
+
+## Watched threshold
+
+Auto-complete no longer waits for the final 10 seconds. `WatchHistory.snapshot` marks an episode watched when playback ends, or when the duration is at least one minute and the playhead reaches the earlier of 80% or two minutes remaining, never before halfway. On a 22-minute episode the binding mark is 17:36. Completed entries still store position 0, so Continue offers Watch again; progress below the threshold keeps its resume position. The details-dialog Mark as watched / unwatched action is unchanged and does not move that position. A later partial rewatch still does not clear the watched flag.
+
+`./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug` passes, including 29 JVM tests. No emulator or physical TV was used, so playback, the Continue label, and the details toggle were not exercised on a device.
