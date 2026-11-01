@@ -37,7 +37,10 @@ public class WatchHistoryTest {
         var values = new java.util.HashMap<String, Object>();
         var preferences = preferences(values);
         assertFalse(WatchHistory.isWatched(preferences, "major"));
-        WatchHistory.save(preferences, WatchHistory.snapshot(MAJOR, 12, SEASON, 1310000, 1320000, false));
+        // 22:00 crossed at 80% (17:36). That completion clears resume; the partial rewatch below restores it.
+        WatchHistory.save(preferences, WatchHistory.snapshot(MAJOR, 12, SEASON, 1056000, 1320000, false));
+        assertEquals(0L, values.get("major"));
+        assertTrue(WatchHistory.isWatched(preferences, "major"));
         WatchHistory.save(preferences, WatchHistory.snapshot(CANADA, 12, SEASON, 45000, 1320000, false));
         WatchHistory.save(preferences, WatchHistory.snapshot(MAJOR, 12, SEASON, 45000, 1320000, false));
         assertTrue(WatchHistory.isWatched(preferences(values), "major"));
@@ -104,12 +107,81 @@ public class WatchHistoryTest {
         assertFalse(entry.completed());
     }
 
-    @Test public void endingOrReachingLastTenSecondsOffersWatchAgain() {
-        WatchHistory.Entry nearEnd = WatchHistory.snapshot(MAJOR, 12, SEASON, 1310000, 1320000, false);
-        assertEquals(0, nearEnd.positionMs());
-        assertTrue(nearEnd.completed());
-        assertFalse(WatchHistory.snapshot(MAJOR, 12, SEASON, 1309999, 1320000, false).completed());
-        assertTrue(WatchHistory.snapshot(MAJOR, 12, SEASON, 0, 0, true).completed());
+    @Test public void twentyTwoMinuteEpisodeCompletesAtEightyPercentAndKeepsEarlierResume() {
+        // 22:00 = 1_320_000 ms. 80% is 17:36 = 1_056_000. Two minutes remain at 20:00, after 80%.
+        WatchHistory.Entry opening = WatchHistory.snapshot(MAJOR, 12, SEASON, 15000, 1320000, false);
+        assertFalse(opening.completed());
+        assertEquals(15000, opening.positionMs());
+
+        WatchHistory.Entry halfway = WatchHistory.snapshot(MAJOR, 12, SEASON, 660000, 1320000, false);
+        assertFalse(halfway.completed());
+        assertEquals(660000, halfway.positionMs());
+
+        WatchHistory.Entry before = WatchHistory.snapshot(MAJOR, 12, SEASON, 1055999, 1320000, false);
+        assertFalse(before.completed());
+        assertEquals(1055999, before.positionMs());
+
+        WatchHistory.Entry crossed = WatchHistory.snapshot(MAJOR, 12, SEASON, 1056000, 1320000, false);
+        assertTrue(crossed.completed());
+        assertEquals(0, crossed.positionMs());
+        assertEquals(1320000, crossed.durationMs());
+
+        WatchHistory.Entry credits = WatchHistory.snapshot(MAJOR, 12, SEASON, 1200000, 1320000, false);
+        assertTrue(credits.completed());
+        assertEquals(0, credits.positionMs());
+    }
+
+    @Test public void endedPlaybackCompletesEvenBeforeTheThreshold() {
+        WatchHistory.Entry endedEarly = WatchHistory.snapshot(MAJOR, 12, SEASON, 300000, 1320000, true);
+        assertTrue(endedEarly.completed());
+        assertEquals(0, endedEarly.positionMs());
+        WatchHistory.Entry endedUnknown = WatchHistory.snapshot(MAJOR, 12, SEASON, 0, 0, true);
+        assertTrue(endedUnknown.completed());
+        assertEquals(0, endedUnknown.positionMs());
+    }
+
+    @Test public void shortDurationDoesNotAutoCompleteUntilPlaybackEnds() {
+        // 45s intro is under the one-minute minimum, even at ~89% and inside a two-minute remainder.
+        WatchHistory.Entry intro = WatchHistory.snapshot(MAJOR, 12, SEASON, 40000, 45000, false);
+        assertFalse(intro.completed());
+        assertEquals(40000, intro.positionMs());
+        assertFalse(WatchHistory.snapshot(MAJOR, 12, SEASON, 59000, 59999, false).completed());
+
+        // Exactly one minute uses 80% (48s), not "two minutes remain" (true for the whole item).
+        WatchHistory.Entry beforeMinute = WatchHistory.snapshot(MAJOR, 12, SEASON, 47999, 60000, false);
+        assertFalse(beforeMinute.completed());
+        assertEquals(47999, beforeMinute.positionMs());
+        WatchHistory.Entry minute = WatchHistory.snapshot(MAJOR, 12, SEASON, 48000, 60000, false);
+        assertTrue(minute.completed());
+        assertEquals(0, minute.positionMs());
+
+        assertTrue(WatchHistory.snapshot(MAJOR, 12, SEASON, 45000, 45000, true).completed());
+    }
+
+    @Test public void twoMinuteTailCompletesOnlyAfterHalfwayAndBeforeEightyPercent() {
+        // 8:00 = 480_000. Two minutes left is 6:00 = 360_000, which is before 80% (6:24 = 384_000).
+        WatchHistory.Entry beforeTail = WatchHistory.snapshot(MAJOR, 12, SEASON, 359999, 480000, false);
+        assertFalse(beforeTail.completed());
+        assertEquals(359999, beforeTail.positionMs());
+        WatchHistory.Entry tail = WatchHistory.snapshot(MAJOR, 12, SEASON, 360000, 480000, false);
+        assertTrue(tail.completed());
+        assertEquals(0, tail.positionMs());
+
+        // 3:00 = 180_000. Two minutes left is 1:00, still before halfway (1:30), so it stays resumable.
+        WatchHistory.Entry earlyTail = WatchHistory.snapshot(MAJOR, 12, SEASON, 60000, 180000, false);
+        assertFalse(earlyTail.completed());
+        assertEquals(60000, earlyTail.positionMs());
+        assertFalse(WatchHistory.snapshot(MAJOR, 12, SEASON, 89999, 180000, false).completed());
+        WatchHistory.Entry half = WatchHistory.snapshot(MAJOR, 12, SEASON, 90000, 180000, false);
+        assertTrue(half.completed());
+        assertEquals(0, half.positionMs());
+
+        // 90s is inside a two-minute remainder from the first second; only 80% (72s) counts.
+        assertFalse(WatchHistory.snapshot(MAJOR, 12, SEASON, 1000, 90000, false).completed());
+        assertFalse(WatchHistory.snapshot(MAJOR, 12, SEASON, 71999, 90000, false).completed());
+        WatchHistory.Entry ninety = WatchHistory.snapshot(MAJOR, 12, SEASON, 72000, 90000, false);
+        assertTrue(ninety.completed());
+        assertEquals(0, ninety.positionMs());
     }
 
     @Test public void recommendsCanadaAfterMajorAndDoesNotWrapOrGuessMissingEpisode() {
