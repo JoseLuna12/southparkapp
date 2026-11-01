@@ -417,10 +417,10 @@ public final class PlayerActivity extends Activity {
                 .setMessage(message == null ? getString(R.string.player_error_fallback) : message)
                 .setPositiveButton(R.string.player_error_retry, (d, w) -> load())
                 .setNegativeButton(R.string.player_error_back, (d, w) -> finish())
-                .setNeutralButton(R.string.player_error_official, (d, w) -> {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Catalog.officialPage(episode.path())))); }
-                    catch (android.content.ActivityNotFoundException e) { errorShown = false; error(getString(R.string.player_no_browser)); }
-                }).setOnCancelListener(d -> finish()));
+                // No "Official site" button: on Android TV, ACTION_VIEW hands off to an
+                // external app (e.g. Downloader) that takes full foreground and traps the
+                // user with no easy way back. Stay in-app on all error paths.
+                .setOnCancelListener(d -> finish()));
     }
 
     private void savePosition() {
